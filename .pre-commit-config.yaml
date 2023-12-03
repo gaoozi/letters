@@ -1,0 +1,60 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-byte-order-marker
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6 # Ruff version
+    hooks:
+      - id: ruff # Run the linter
+        args: [ --fix ]
+      - id: ruff-format # Run the formatter.
+  - repo: local
+    hooks:
+      - id: fmt
+        name: fmt
+        description: Format files with cargo fmt.
+        entry: cargo fmt
+        language: system
+        types: [rust]
+        args: ["--"]
+      - id: typos  # cargo install typos-cli
+        name: typos
+        description: check typo
+        entry: typos
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-check
+        name: cargo check
+        description: Check the package for errors.
+        entry: cargo check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: clippy
+        name: clippy
+        description: Lint rust sources
+        entry: cargo clippy
+        language: system
+        types: [rust]
+        args: ["--", "-D", "warnings"]
+        pass_filenames: false
+      - id: cargo-test
+        name: cargo test
+        description: unit test for the project
+        entry: cargo test run
+        language: system
+        types: [rust]
+        args: ["--all-features"]
+        pass_filenames: false
