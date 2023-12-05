@@ -1,16 +1,11 @@
+pub mod log;
+
 use axum::{response::Html, routing::get, Router};
 use tower_http::trace::TraceLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "letters=debug,tower_http=debug,axum::rejection=trace".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    let _guards = log::setup();
 
     let app = Router::new()
         .route("/", get(handler))
