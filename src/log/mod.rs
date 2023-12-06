@@ -1,12 +1,17 @@
-use tracing_appender::{rolling::{RollingFileAppender, Rotation}, non_blocking::WorkerGuard};
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt, fmt, Layer};
+use tracing_appender::{
+    non_blocking::WorkerGuard,
+    rolling::{RollingFileAppender, Rotation},
+};
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 
 pub fn setup() -> Vec<WorkerGuard> {
     let mut guards = Vec::new();
     let env_filter = EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "letters=debug,tower_http=debug,axum::rejection=trace".into());
+        .unwrap_or_else(|_| "letters=debug,tower_http=debug,axum::rejection=trace".into());
 
-    let console_layer = tracing_subscriber::fmt::layer().pretty().with_writer(std::io::stderr);
+    let console_layer = tracing_subscriber::fmt::layer()
+        .pretty()
+        .with_writer(std::io::stderr);
 
     let file_appender = RollingFileAppender::builder()
         .max_log_files(5)

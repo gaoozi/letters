@@ -1,6 +1,6 @@
 # Letters
 
-A blog system bulid with rust.
+A blog system build with rust.
 
 ## Tech Stack
 

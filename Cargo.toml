@@ -8,9 +8,21 @@ edition = "2021"
 [dependencies]
 axum = "0.7"
 tokio = { version = "1.0", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["trace"] }
+tower-http = { version = "0.5", features = ["trace"] }
 
 # log, tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = "0.2"
+
+# database
+sqlx = { version = "0.7", features = [ "runtime-tokio", "postgres", "uuid" ] }
+
+# serialize/deserialize
+serde = { version = "1.0", features = ["derive"] }
+
+# error handle
+thiserror = "1.0"
+
+# dotenv
+dotenvy = "0.15"
