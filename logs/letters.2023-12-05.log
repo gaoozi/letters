@@ -1,6 +1,0 @@
-2023-12-05T23:19:47.902001Z DEBUG letters: Listening on http://127.0.0.1:3000
-2023-12-05T23:20:14.727368Z DEBUG letters: Listening on http://127.0.0.1:3000
-2023-12-05T23:20:17.226669Z DEBUG request{method=GET uri=/ version=HTTP/1.1}: tower_http::trace::on_request: started processing request
-2023-12-05T23:20:17.226875Z  INFO request{method=GET uri=/ version=HTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
-2023-12-05T23:20:18.196855Z DEBUG request{method=GET uri=/favicon.ico version=HTTP/1.1}: tower_http::trace::on_request: started processing request
-2023-12-05T23:20:18.197006Z  INFO request{method=GET uri=/favicon.ico version=HTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
