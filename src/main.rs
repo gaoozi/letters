@@ -1,6 +1,7 @@
 mod error;
 mod log;
-mod model;
+mod models;
+mod routes;
 
 use axum::{response::Html, routing::get, Router};
 use dotenvy::dotenv;
@@ -8,7 +9,7 @@ use error::Result;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
-use crate::model::ModelManager;
+use crate::models::ModelManager;
 
 #[tokio::main]
 async fn main() -> Result<()> {
