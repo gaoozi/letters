@@ -11,3 +11,44 @@ A blog system build with rust.
     - [serde](https://github.com/serde-rs/serde): Serialization framework for Rust
     - [thiserror](https://github.com/dtolnay/thiserror): derive(Error) for struct and enum error types
     - [dotenvy](https://github.com/allan2/dotenvy): A well-maintained fork of the Rust dotenv crate
+
+## Usage
+
+### Migrations
+
+1. Install toolchain
+
+```
+$ cargo install sqlx-cli
+```
+
+2. create .env file, like:
+
+```shell
+# .env
+
+DATABASE_URL=mysql://mysql@localhost/db_name
+```
+
+3. create/drop database
+
+```
+sqlx database create    # create database
+sqlx database drop      # drop database
+```
+
+3. create and run migrations
+
+create migrate, will create a new file in `migrations/<timestamp>-<name>.(up/down).sql`:
+```
+sqlx migrate add -r <name>
+```
+then add your database scheme to this file
+
+---
+run migrations
+```
+sqlx migrate run
+```
+
+more information to read [sqlx-cli document](https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md)
