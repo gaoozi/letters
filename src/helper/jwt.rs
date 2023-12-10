@@ -14,8 +14,8 @@ use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 
-use crate::error::{AuthError, Error, Result};
 use crate::app::AppState;
+use crate::error::{AuthError, Error, Result};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthUser {

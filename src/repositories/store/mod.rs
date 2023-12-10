@@ -1,5 +1,5 @@
-use std::{env, sync::Arc};
 use sqlx::{pool::PoolOptions, Pool, Postgres};
+use std::{env, sync::Arc};
 
 pub type Db = Arc<Pool<Postgres>>;
 
