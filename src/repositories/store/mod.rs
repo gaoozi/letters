@@ -1,7 +1,4 @@
-pub mod error;
-
 use std::{env, sync::Arc};
-
 use sqlx::{pool::PoolOptions, Pool, Postgres};
 
 pub type Db = Arc<Pool<Postgres>>;
@@ -15,5 +12,5 @@ pub async fn new_db_pool() -> Pool<Postgres> {
         .connect(&db_url)
         .await
         .expect("Fail to create pool")
-        // .map_err(|ex| Error::FailToCreatePool(ex.to_string()))
+    // .map_err(|ex| Error::FailToCreatePool(ex.to_string()))
 }

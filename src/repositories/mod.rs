@@ -2,17 +2,14 @@ use std::sync::Arc;
 
 use self::user::{UserRepo, UserRepoImpl};
 
-pub mod error;
-pub mod user;
 pub mod store;
+pub mod user;
 
-pub use store::{Db, new_db_pool};
+pub use store::{new_db_pool, Db};
 
 pub async fn create_repositories() -> RepoImpls {
     let db_pool = Arc::new(new_db_pool().await);
-    RepoImpls::new(
-        UserRepoImpl::new(db_pool.clone()),
-    )
+    RepoImpls::new(UserRepoImpl::new(db_pool.clone()))
 }
 
 pub struct RepoImpls {

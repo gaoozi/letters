@@ -4,7 +4,7 @@ use argon2::{
 };
 use base64::{engine::general_purpose, Engine as _};
 
-use super::error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub fn generate_hash(password: &str) -> Result<String> {
     let salt = SaltString::generate(&mut OsRng);

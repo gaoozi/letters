@@ -14,7 +14,7 @@ use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 
-use super::error::{AuthError, Error, Result};
+use crate::error::{AuthError, Error, Result};
 use crate::app::AppState;
 
 #[derive(Debug, Serialize, Deserialize)]

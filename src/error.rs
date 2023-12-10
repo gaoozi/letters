@@ -1,14 +1,18 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
-use crate::models;
-
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("fail to hash password")]
+    FailToHashPassword(#[from] argon2::password_hash::Error),
+
+    #[error("{0}")]
+    Auth(#[from] AuthError),
+
     #[error(transparent)]
-    Model(#[from] models::Error),
+    Sqlx(#[from] sqlx::Error),
 }
 
 impl IntoResponse for Error {
@@ -19,3 +23,16 @@ impl IntoResponse for Error {
         (StatusCode::OK, body).into_response()
     }
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum AuthError {
+    #[error("Wrong authentication credentials")]
+    WrongCredentials,
+    #[error("Missing authentication credentials")]
+    MissingCredentials,
+    #[error("Failed to create authentication token")]
+    TokenCreation,
+    #[error("Invalid authentication token")]
+    InvalidToken,
+}
+

@@ -1,4 +1,4 @@
-use super::error::Result;
+use crate::error::Result;
 use crate::{
     app::AppState,
     helper::{hash::generate_hash, jwt::AuthUser},
