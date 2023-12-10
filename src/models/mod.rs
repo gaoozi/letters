@@ -1,17 +1,12 @@
 mod error;
-mod store;
+// mod store;
+pub mod user;
 
 pub use self::error::{Error, Result};
-use self::store::{new_db_pool, Db};
+// use self::store::new_db_pool;
+// pub use self::store::Db;
 
-#[derive(Debug)]
-pub struct ModelManager {
-    _db: Db,
-}
-
-impl ModelManager {
-    pub async fn new() -> Result<Self> {
-        let _db = new_db_pool().await?;
-        Ok(ModelManager { _db })
-    }
-}
+// pub async fn new() -> Result<Db> {
+//     let db = new_db_pool().await?;
+//     Ok(db)
+// }
