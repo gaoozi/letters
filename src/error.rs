@@ -13,6 +13,9 @@ pub enum Error {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+
+    #[error("{0}")]
+    UnprocessableEntity(String),
 }
 
 impl IntoResponse for Error {
@@ -26,10 +29,10 @@ impl IntoResponse for Error {
 
 #[derive(thiserror::Error, Debug)]
 pub enum AuthError {
-    #[error("Wrong authentication credentials")]
-    WrongCredentials,
-    #[error("Missing authentication credentials")]
-    MissingCredentials,
+    //#[error("Wrong authentication credentials")]
+    //WrongCredentials,
+    //#[error("Missing authentication credentials")]
+    //MissingCredentials,
     #[error("Failed to create authentication token")]
     TokenCreation,
     #[error("Invalid authentication token")]

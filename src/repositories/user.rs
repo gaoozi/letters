@@ -1,4 +1,5 @@
-use crate::error::Result;
+use crate::error::{Error, Result};
+use crate::models::user::LoginUser;
 use crate::{
     app::AppState,
     helper::{hash::generate_hash, jwt::AuthUser},
@@ -14,6 +15,12 @@ pub trait UserRepo {
         &self,
         state: &AppState,
         Json(req): Json<UserBody<NewUser>>,
+    ) -> Result<Json<UserBody<User>>>;
+
+    async fn login(
+        &self,
+        state: &AppState,
+        Json(req): Json<UserBody<LoginUser>>,
     ) -> Result<Json<UserBody<User>>>;
 }
 
@@ -52,6 +59,32 @@ impl UserRepo for UserRepoImpl {
                 token: AuthUser { user_id }.to_jwt(&state.secret)?,
                 bio: "".to_string(),
                 avatar: None,
+            },
+        }))
+    }
+
+    async fn login(
+        &self,
+        state: &AppState,
+        Json(req): Json<UserBody<LoginUser>>,
+    ) -> Result<Json<UserBody<User>>> {
+        let user = sqlx::query!(
+            r#"select id, email, name, bio, avatar, passwd_hash from "user" where email = $1"#,
+            req.user.email,
+        )
+        .fetch_optional(&*self.pool)
+        .await?
+        .ok_or(Error::UnprocessableEntity(
+            "Email does not exist".to_string(),
+        ))?;
+
+        Ok(Json(UserBody {
+            user: User {
+                email: user.email,
+                token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
+                name: user.name,
+                bio: user.bio,
+                avatar: user.avatar,
             },
         }))
     }
