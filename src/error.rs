@@ -13,15 +13,25 @@ pub enum Error {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+    //#[error("{0}")]
+    //UnprocessableEntity(String),
+}
 
-    #[error("{0}")]
-    UnprocessableEntity(String),
+impl Error {
+    pub fn code(&self) -> u32 {
+        match self {
+            Error::FailToHashPassword(_) => 1001,
+            Error::Auth(_) => 2001,
+            Error::Sqlx(_) => 3001,
+            //Error::UnprocessableEntity(_) => 4001,
+        }
+    }
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         let body = Json(json!(
-            { "message": self.to_string() }
+            { "body": self.code(), "message": self.to_string() }
         ));
         (StatusCode::OK, body).into_response()
     }

@@ -37,7 +37,7 @@ impl AuthUser {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthClaims {
-    user_id: sqlx::types::Uuid,
+    pub user_id: sqlx::types::Uuid,
     exp: usize,
 }
 

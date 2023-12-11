@@ -1,11 +1,14 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get, Router};
+use axum::{response::Html, routing::get};
 use secrecy::Secret;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
-use crate::repositories::{create_repositories, RepoImpls};
+use crate::{
+    repositories::{create_repositories, RepoImpls},
+    routes::api_router,
+};
 
 pub struct AppState {
     // pub db: Db,
@@ -20,7 +23,7 @@ pub async fn serve() {
         secret: Secret::new("".to_string()),
     });
 
-    let app = Router::new()
+    let app = api_router()
         .route("/", get(handler))
         .layer(
             TraceLayer::new_for_http()

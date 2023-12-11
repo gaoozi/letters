@@ -1,27 +1,18 @@
-use crate::error::{Error, Result};
-use crate::models::user::LoginUser;
+use crate::error::Result;
+use crate::helper::hash::generate_hash;
+use crate::models::user::UpdateUser;
 use crate::{
-    app::AppState,
-    helper::{hash::generate_hash, jwt::AuthUser},
-    models::user::{NewUser, User, UserBody},
+    models::user::{NewUser, User},
     repositories::Db,
 };
-use axum::{async_trait, Json};
-// use uuid::Uuid;
+use axum::async_trait;
+use sqlx::types::Uuid;
 
 #[async_trait]
 pub trait UserRepo {
-    async fn create(
-        &self,
-        state: &AppState,
-        Json(req): Json<UserBody<NewUser>>,
-    ) -> Result<Json<UserBody<User>>>;
-
-    async fn login(
-        &self,
-        state: &AppState,
-        Json(req): Json<UserBody<LoginUser>>,
-    ) -> Result<Json<UserBody<User>>>;
+    async fn create(&self, user_data: NewUser) -> Result<User>;
+    async fn update(&self, user_id: Uuid, user_data: UpdateUser) -> Result<User>;
+    async fn get(&self, user_id: Uuid) -> Result<User>;
 }
 
 pub struct UserRepoImpl {
@@ -36,56 +27,72 @@ impl UserRepoImpl {
 
 #[async_trait]
 impl UserRepo for UserRepoImpl {
-    async fn create(
-        &self,
-        state: &AppState,
-        Json(req): Json<UserBody<NewUser>>,
-    ) -> Result<Json<UserBody<User>>> {
-        let password_hash = generate_hash(&req.user.password)?;
+    async fn create(&self, user_data: NewUser) -> Result<User> {
+        let password_hash = generate_hash(&user_data.password)?;
 
         let user_id = sqlx::query_scalar!(
             r#"INSERT INTO "user" (name, email, passwd_hash) values ($1, $2, $3) returning id "#,
-            req.user.name,
-            req.user.email,
+            user_data.name,
+            user_data.email,
             password_hash,
         )
         .fetch_one(&*self.pool)
         .await?;
 
-        Ok(Json(UserBody {
-            user: User {
-                email: req.user.email,
-                name: req.user.name,
-                token: AuthUser { user_id }.to_jwt(&state.secret)?,
-                bio: "".to_string(),
-                avatar: None,
-            },
-        }))
+        Ok(User {
+            id: user_id,
+            email: user_data.email,
+            name: user_data.name,
+            bio: "".to_string(),
+            avatar: None,
+        })
     }
 
-    async fn login(
-        &self,
-        state: &AppState,
-        Json(req): Json<UserBody<LoginUser>>,
-    ) -> Result<Json<UserBody<User>>> {
+    async fn update(&self, user_id: Uuid, user_data: UpdateUser) -> Result<User> {
         let user = sqlx::query!(
-            r#"select id, email, name, bio, avatar, passwd_hash from "user" where email = $1"#,
-            req.user.email,
+            // This is how we do optional updates of fields without needing a separate query for each.
+            // language=PostgreSQL
+            r#"
+                update "user"
+                set email = coalesce($1, "user".email),
+                    name = coalesce($2, "user".name),
+                    bio = coalesce($3, "user".bio),
+                    avatar = coalesce($4, "user".avatar)
+                where id = $5
+                returning email, name, bio, avatar
+            "#,
+            user_data.email,
+            user_data.name,
+            user_data.bio,
+            user_data.avatar,
+            user_id,
         )
-        .fetch_optional(&*self.pool)
-        .await?
-        .ok_or(Error::UnprocessableEntity(
-            "Email does not exist".to_string(),
-        ))?;
+        .fetch_one(&*self.pool)
+        .await?;
 
-        Ok(Json(UserBody {
-            user: User {
-                email: user.email,
-                token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
-                name: user.name,
-                bio: user.bio,
-                avatar: user.avatar,
-            },
-        }))
+        Ok(User {
+            id: user_id,
+            email: user.email,
+            name: user.name,
+            bio: user.bio,
+            avatar: user.avatar,
+        })
+    }
+
+    async fn get(&self, user_id: Uuid) -> Result<User> {
+        let user = sqlx::query!(
+            r#"select email, name, bio, avatar from "user" where id = $1"#,
+            user_id,
+        )
+        .fetch_one(&*self.pool)
+        .await?;
+
+        Ok(User {
+            id: user_id,
+            email: user.email,
+            name: user.name,
+            bio: user.bio,
+            avatar: user.avatar,
+        })
     }
 }
