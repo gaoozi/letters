@@ -3,6 +3,7 @@ use sqlx::types::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct UserBody<T> {
+    pub token: String,
     pub user: T,
 }
 

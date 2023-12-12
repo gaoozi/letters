@@ -1,5 +1,5 @@
-use crate::error::Result;
-use crate::helper::hash::generate_hash;
+use crate::error::{Error, Result, ResultExt};
+use crate::helper::hash::{generate_hash, verify_password};
 use crate::models::user::UpdateUser;
 use crate::{
     models::user::{NewUser, User},
@@ -13,6 +13,7 @@ pub trait UserRepo {
     async fn create(&self, user_data: NewUser) -> Result<User>;
     async fn update(&self, user_id: Uuid, user_data: UpdateUser) -> Result<User>;
     async fn get(&self, user_id: Uuid) -> Result<User>;
+    async fn check(&self, email: String, password: String) -> Result<User>;
 }
 
 pub struct UserRepoImpl {
@@ -37,7 +38,13 @@ impl UserRepo for UserRepoImpl {
             password_hash,
         )
         .fetch_one(&*self.pool)
-        .await?;
+        .await
+        .on_constraint("user_name_key", |_| {
+            Error::UnprocessableEntity("username taken".to_string())
+        })
+        .on_constraint("user_email_key", |_| {
+            Error::UnprocessableEntity("email taken".to_string())
+        })?;
 
         Ok(User {
             id: user_id,
@@ -68,7 +75,13 @@ impl UserRepo for UserRepoImpl {
             user_id,
         )
         .fetch_one(&*self.pool)
-        .await?;
+        .await
+        .on_constraint("user_name_key", |_| {
+            Error::UnprocessableEntity("username taken".to_string())
+        })
+        .on_constraint("user_email_key", |_| {
+            Error::UnprocessableEntity("email taken".to_string())
+        })?;
 
         Ok(User {
             id: user_id,
@@ -85,10 +98,38 @@ impl UserRepo for UserRepoImpl {
             user_id,
         )
         .fetch_one(&*self.pool)
-        .await?;
+        .await
+        .on_constraint("user_name_key", |_| {
+            Error::UnprocessableEntity("username taken".to_string())
+        })
+        .on_constraint("user_email_key", |_| {
+            Error::UnprocessableEntity("email taken".to_string())
+        })?;
 
         Ok(User {
             id: user_id,
+            email: user.email,
+            name: user.name,
+            bio: user.bio,
+            avatar: user.avatar,
+        })
+    }
+
+    async fn check(&self, email: String, password: String) -> Result<User> {
+        let user = sqlx::query!(
+            r#"select id, email, name, bio, avatar, passwd_hash from "user" where email = $1"#,
+            email,
+        )
+        .fetch_optional(&*self.pool)
+        .await?
+        .ok_or(Error::UnprocessableEntity(
+            "email does not exist".to_string(),
+        ))?;
+
+        verify_password(&password, &user.passwd_hash)?;
+
+        Ok(User {
+            id: user.id,
             email: user.email,
             name: user.name,
             bio: user.bio,
