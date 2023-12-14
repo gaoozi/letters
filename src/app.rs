@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get};
+use axum::Router;
 use secrecy::Secret;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
@@ -11,20 +11,18 @@ use crate::{
 };
 
 pub struct AppState {
-    // pub db: Db,
     pub secret: Secret<String>,
     pub repo: RepoImpls,
 }
 
 pub async fn serve() {
     let state = Arc::new(AppState {
-        // db: db,
         repo: create_repositories().await,
         secret: Secret::new("".to_string()),
     });
 
-    let app = api_router()
-        .route("/", get(handler))
+    let app = Router::new()
+        .nest("/api", api_router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -38,8 +36,4 @@ pub async fn serve() {
 
     tracing::debug!("Listening on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap()
-}
-
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!")
 }

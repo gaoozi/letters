@@ -14,7 +14,6 @@ async fn main() -> Result<()> {
     dotenv().expect(".env file not found");
 
     let _guards = log::setup();
-    // let db = models::new().await?;
 
     app::serve().await;
     Ok(())
