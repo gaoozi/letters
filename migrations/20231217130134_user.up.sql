@@ -1,0 +1,16 @@
+-- Add table user
+CREATE TABLE IF NOT EXISTS user (
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(64) NOT NULL,
+  password_hash VARCHAR(128) NOT NULL,
+  email VARCHAR(64) NOT NULL,
+  bio VARCHAR(255) NOT NULL DEFAULT "",
+  avatar VARCHAR(128),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at DATETIME,
+  is_active TINYINT(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_name` (`name`),
+  UNIQUE KEY `user_email` (`email`)
+);

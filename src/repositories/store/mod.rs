@@ -1,13 +1,13 @@
-use sqlx::{pool::PoolOptions, Pool, Postgres};
+use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 use std::{env, sync::Arc};
 
-pub type Db = Arc<Pool<Postgres>>;
+pub type Db = Arc<MySqlPool>;
 
-pub async fn new_db_pool() -> Pool<Postgres> {
+pub async fn new_db_pool() -> MySqlPool {
     let max_connections = 5;
     let db_url = env::var("DATABASE_URL").expect("Can't found DATABASE_URL.");
 
-    PoolOptions::new()
+    MySqlPoolOptions::new()
         .max_connections(max_connections)
         .connect(&db_url)
         .await

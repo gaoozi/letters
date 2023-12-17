@@ -10,35 +10,43 @@ use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
 };
-use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 
-use crate::app::AppState;
-use crate::error::{AuthError, Error, Result};
+use crate::{
+    app::AppState,
+    error::{AuthError, Error, Result},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthUser {
-    pub user_id: sqlx::types::Uuid,
+    pub user_id: i32,
 }
 
 impl AuthUser {
     pub fn to_jwt(&self, secret: &Secret<String>) -> Result<String> {
-        let claims = AuthClaims {
-            user_id: self.user_id,
-            exp: (chrono::Local::now() + chrono::Duration::days(30)).timestamp() as usize,
-        };
+        let claims = AuthClaims::new(self.user_id);
 
-        let key = Keys::new(secret.expose_secret().as_bytes());
-        jsonwebtoken::encode(&Header::default(), &claims, &key.encoding)
-            .map_err(|_| Error::Auth(AuthError::TokenCreation))
+        encode(self.user_id, secret.expose_secret())
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthClaims {
-    pub user_id: sqlx::types::Uuid,
-    exp: usize,
+    pub exp: usize, // Expiration time (as UTC timestamp). validate_exp defaults to true in validation
+    pub iat: usize, // Issued at (as UTC timestamp)
+    pub user_id: i32,
+}
+
+impl AuthClaims {
+    fn new(user_id: i32) -> Self {
+        Self {
+            exp: (chrono::Local::now() + chrono::Duration::days(30)).timestamp() as usize,
+            iat: chrono::Local::now().timestamp() as usize,
+            user_id,
+        }
+    }
 }
 
 #[async_trait]
@@ -51,7 +59,7 @@ where
     async fn from_request_parts(
         parts: &mut Parts,
         state: &S,
-    ) -> std::result::Result<Self, Self::Rejection> {
+    ) -> core::result::Result<Self, Self::Rejection> {
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
@@ -59,24 +67,24 @@ where
 
         let state = Arc::<AppState>::from_ref(state);
 
-        let key = Keys::new(state.secret.expose_secret().as_bytes());
-        let token_data = decode(bearer.token(), &key.decoding, &Validation::default())
+        let token_data = decode(bearer.token(), &state.secret.expose_secret())
             .map_err(|_| Error::Auth(AuthError::InvalidToken))?;
 
         Ok(token_data.claims)
     }
 }
 
-pub struct Keys {
-    encoding: EncodingKey,
-    decoding: DecodingKey,
+pub fn encode(user_id: i32, secret: &str) -> Result<String> {
+    let encoding_key = EncodingKey::from_secret(secret.as_ref());
+    let claims = AuthClaims::new(user_id);
+
+    jsonwebtoken::encode(&Header::default(), &claims, &encoding_key)
+        .map_err(|_| Error::Auth(AuthError::TokenCreation))
 }
 
-impl Keys {
-    fn new(secret: &[u8]) -> Self {
-        Self {
-            encoding: EncodingKey::from_secret(secret),
-            decoding: DecodingKey::from_secret(secret),
-        }
-    }
+pub fn decode(token: &str, secret: &str) -> Result<TokenData<AuthClaims>> {
+    let decoding_key = DecodingKey::from_secret(secret.as_ref());
+
+    jsonwebtoken::decode(token, &decoding_key, &Validation::default())
+        .map_err(|_| Error::Auth(AuthError::InvalidToken))
 }

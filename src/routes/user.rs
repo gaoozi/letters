@@ -24,11 +24,9 @@ async fn create_user(
     State(state): State<Arc<AppState>>,
     Json(req): Json<UserBody<NewUser>>,
 ) -> Result<Json<UserBody<User>>> {
-    let user = state.repo.user().create(req.user).await?;
-    Ok(Json(UserBody {
-        token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
-        user,
-    }))
+    let user_id = state.repo.user().create(req.user).await?;
+    let user = state.repo.user().get(user_id as i32).await?;
+    Ok(Json(UserBody { token: None, user }))
 }
 
 async fn login_user(
@@ -42,7 +40,7 @@ async fn login_user(
         .await?;
 
     Ok(Json(UserBody {
-        token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
+        token: Some(AuthUser { user_id: user.id }.to_jwt(&state.secret)?),
         user,
     }))
 }
@@ -52,10 +50,7 @@ async fn get_current_user(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<UserBody<User>>> {
     let user = state.repo.user().get(auth_user.user_id).await?;
-    Ok(Json(UserBody {
-        token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
-        user,
-    }))
+    Ok(Json(UserBody { token: None, user }))
 }
 
 async fn update_user(
@@ -67,13 +62,12 @@ async fn update_user(
         return get_current_user(auth_user, State(state)).await;
     }
 
-    let user = state
+    state
         .repo
         .user()
         .update(auth_user.user_id, req.user)
         .await?;
-    Ok(Json(UserBody {
-        token: AuthUser { user_id: user.id }.to_jwt(&state.secret)?,
-        user,
-    }))
+
+    let user = state.repo.user().get(auth_user.user_id).await?;
+    Ok(Json(UserBody { token: None, user }))
 }

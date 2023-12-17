@@ -1,21 +1,27 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::types::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct UserBody<T> {
-    pub token: String,
+    pub token: Option<String>,
     pub user: T,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct User {
+    pub id: i32,
+    pub name: String,
+    pub email: String,
+    pub bio: String,
+    pub avatar: Option<String>,
+    pub created_at: Option<NaiveDateTime>,
+    pub last_seen: Option<NaiveDateTime>,
+    pub is_active: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct NewUser {
     pub name: String,
-    pub email: String,
-    pub password: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct LoginUser {
     pub email: String,
     pub password: String,
 }
@@ -30,16 +36,13 @@ pub struct UpdateUser {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct LoginUser {
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct ResetPassword {
     pub old_password: String,
     pub new_password: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct User {
-    pub id: Uuid,
-    pub name: String,
-    pub email: String,
-    pub bio: String,
-    pub avatar: Option<String>,
 }

@@ -1,6 +1,5 @@
 use super::user::User;
 use serde::{Deserialize, Serialize};
-use sqlx::types::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct ArticleBody<T = Article> {
