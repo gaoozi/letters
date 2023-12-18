@@ -1,4 +1,8 @@
-use super::user::User;
+use super::{
+    category::{ArticleCategory, Category},
+    user::{Profile, User},
+};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -9,57 +13,93 @@ pub struct ArticleBody<T = Article> {
 #[derive(Deserialize)]
 pub struct CreateArticle {
     pub title: String,
-    pub description: String,
-    pub body: String,
+    pub slug: Option<String>,
+    pub content: String,
+    pub summary: Option<String>,
+    pub cover: Option<String>,
+    pub status: i8,
+    pub password: Option<String>,
+    pub category_id: i32,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateArticle {
     pub title: Option<String>,
-    pub description: Option<String>,
-    pub body: Option<String>,
+    pub slug: Option<String>,
+    pub content: Option<String>,
+    pub summary: Option<String>,
+    pub cover: Option<String>,
+    pub status: Option<i8>,
+    pub read_count: Option<i32>,
+    pub like_count: Option<i32>,
+    pub is_top: Option<bool>,
+    pub password: Option<String>,
+    pub category_id: Option<i32>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Article {
+    // pub title: String,
+    // pub slug: String,
+    // pub description: String,
+    // pub body: String,
+    // pub created_at: chrono::DateTime<chrono::Utc>,
+    // pub updated_at: chrono::DateTime<chrono::Utc>,
+    // pub author: User,
     pub title: String,
-    pub slug: String,
-    pub description: String,
-    pub body: String,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
-    pub author: User,
+    pub slug: Option<String>,
+    pub content: String,
+    pub summary: Option<String>,
+    pub cover: Option<String>,
+    pub status: i8,
+    pub read_count: i32,
+    pub like_count: i32,
+    pub is_top: i8,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub category: ArticleCategory,
+    pub author: Profile,
 }
 
 pub struct ArticleFromQuery {
     pub title: String,
     pub slug: String,
-    pub description: String,
-    pub body: String,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
-    pub author_id: Uuid,
+    pub content: String,
+    pub summary: Option<String>,
+    pub cover: Option<String>,
+    pub status: i8,
+    pub read_count: i32,
+    pub like_count: i32,
+    pub is_top: i8,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
     pub author_name: String,
-    pub author_email: String,
-    pub author_bio: String,
     pub author_avatar: Option<String>,
+    pub category_name: String,
+    pub category_description: Option<String>,
 }
 
 impl ArticleFromQuery {
     pub fn into_article(self) -> Article {
         Article {
             title: self.title,
-            slug: self.slug,
-            description: self.description,
-            body: self.body,
+            slug: Some(self.slug),
+            content: self.content,
+            summary: self.summary,
+            cover: self.cover,
+            status: self.status,
+            read_count: self.read_count,
+            like_count: self.like_count,
+            is_top: self.is_top,
             created_at: self.created_at,
             updated_at: self.updated_at,
-            author: User {
-                id: self.author_id,
-                email: self.author_email,
+            author: Profile {
                 name: self.author_name,
-                bio: self.author_bio,
                 avatar: self.author_avatar,
+            },
+            category: ArticleCategory {
+                name: self.category_name,
+                description: self.category_description,
             },
         }
     }

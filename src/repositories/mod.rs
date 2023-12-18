@@ -6,7 +6,9 @@ use self::{
 };
 
 pub mod article;
+pub mod category;
 pub mod store;
+pub mod tag;
 pub mod user;
 
 pub use store::{new_db_pool, Db};

@@ -19,6 +19,12 @@ pub struct User {
     pub is_active: Option<bool>,
 }
 
+#[derive(Serialize, Debug)]
+pub struct Profile {
+    pub name: String,
+    pub avatar: Option<String>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct NewUser {
     pub name: String,
