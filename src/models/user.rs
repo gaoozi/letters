@@ -21,7 +21,7 @@ pub struct User {
 
 #[derive(Serialize, Debug)]
 pub struct Profile {
-    pub name: String,
+    pub name: Option<String>,
     pub avatar: Option<String>,
 }
 

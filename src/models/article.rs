@@ -62,28 +62,34 @@ pub struct Article {
 }
 
 pub struct ArticleFromQuery {
+    pub id: i32,
     pub title: String,
-    pub slug: String,
+    pub slug: Option<String>,
     pub content: String,
     pub summary: Option<String>,
     pub cover: Option<String>,
+    pub password: Option<String>,
+    pub author_id: i32,
+    pub category_id: i32,
     pub status: i8,
     pub read_count: i32,
     pub like_count: i32,
     pub is_top: i8,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
-    pub author_name: String,
+    pub deleted_at: Option<NaiveDateTime>,
+    pub author_name: Option<String>,
     pub author_avatar: Option<String>,
-    pub category_name: String,
+    pub category_name: Option<String>,
     pub category_description: Option<String>,
+    pub tag_names: Option<String>,
 }
 
 impl ArticleFromQuery {
     pub fn into_article(self) -> Article {
         Article {
             title: self.title,
-            slug: Some(self.slug),
+            slug: self.slug,
             content: self.content,
             summary: self.summary,
             cover: self.cover,

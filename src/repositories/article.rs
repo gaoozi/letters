@@ -1,11 +1,15 @@
 use crate::error::Result;
-use crate::models::article::CreateArticle;
+use crate::models::article::{CreateArticle, ArticleFromQuery};
 use crate::repositories::Db;
 use axum::async_trait;
 
 #[async_trait]
 pub trait ArticleRepo {
     async fn create(&self, author_id: i32, article_data: CreateArticle) -> Result<u64>;
+    async fn get_by_id(&self, article_id: i32) -> Result<ArticleFromQuery>;
+    async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64>;
+    async fn delete_article_tag(&self, article_id: i32, tag_id: i32) -> Result<bool>;
+    async fn delete(&self, article_id: i32) -> Result<bool>;
 }
 
 pub struct ArticleRepoImpl {
@@ -41,5 +45,74 @@ impl ArticleRepo for ArticleRepoImpl {
         .last_insert_id();
 
         Ok(last_id)
+    }
+
+    async fn get_by_id(&self, article_id: i32) -> Result<ArticleFromQuery> {
+        let article = sqlx::query_as!(
+                ArticleFromQuery,
+                r#"
+                    SELECT 
+                        a.*, 
+                        u.name AS author_name,
+                        u.avatar AS author_avatar,
+                        c.name AS category_name,
+                        c.description AS category_description,
+                        GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
+                    FROM article a
+                    LEFT JOIN user u ON a.author_id = u.id
+                    LEFT JOIN category c ON a.category_id = c.id
+                    LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                    LEFT JOIN tag t ON a_t.tag_id = t.id
+                    GROUP BY a.id 
+                    HAVING a.id = ?
+                "#,
+                article_id,
+            )
+            .fetch_one(&*self.pool)
+            .await?;
+
+        Ok(article)
+    }
+
+    async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64> {
+        let last_id = sqlx::query!(
+            r#"
+                INSERT INTO article_tag(article_id, tag_id) VALUES (?, ?);
+            "#,
+            article_id,
+            tag_id,
+        )
+        .execute(&*self.pool)
+        .await?
+        .last_insert_id();
+
+        Ok(last_id)
+    }
+
+    async fn delete_article_tag(&self, article_id: i32, tag_id: i32) -> Result<bool> {
+        let rows_effected = sqlx::query!(
+            r#"
+                DELETE FROM article_tag WHERE article_id = ? AND tag_id = ?;
+            "#,
+            article_id,
+            tag_id,
+        )
+        .execute(&*self.pool)
+        .await?
+        .rows_affected();
+        Ok(rows_effected >= 1)
+    }
+
+    async fn delete(&self, article_id: i32) -> Result<bool> {
+        let rows_effected = sqlx::query!(
+            r#"
+                DELETE FROM article WHERE id = ?;
+            "#,
+            article_id,
+        )
+        .execute(&*self.pool)
+        .await?
+        .rows_affected();
+        Ok(rows_effected >= 1)
     }
 }

@@ -18,7 +18,7 @@ pub struct CategoryData {
 
 #[derive(Debug, Serialize)]
 pub struct ArticleCategory {
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
 }
 
