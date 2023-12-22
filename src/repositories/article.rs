@@ -1,6 +1,6 @@
 use crate::error::Result;
+use crate::models::article::{ArticleFromQuery, CreateArticle, PreviewArticle};
 use crate::models::{Pag, PagRsp};
-use crate::models::article::{CreateArticle, ArticleFromQuery, PreviewArticle};
 use crate::repositories::Db;
 use axum::async_trait;
 use futures::TryStreamExt;
@@ -10,6 +10,12 @@ pub trait ArticleRepo {
     async fn create(&self, author_id: i32, article_data: CreateArticle) -> Result<u64>;
     async fn get_by_id(&self, article_id: i32) -> Result<ArticleFromQuery>;
     async fn get_list(&self, pag: &Pag) -> Result<PagRsp<PreviewArticle>>;
+    async fn get_list_by_category(
+        &self,
+        category_name: &str,
+        pag: &Pag,
+    ) -> Result<PagRsp<PreviewArticle>>;
+    async fn get_list_by_tag(&self, tag_name: &str, pag: &Pag) -> Result<PagRsp<PreviewArticle>>;
     async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64>;
     async fn delete_article_tag(&self, article_id: i32, tag_id: i32) -> Result<bool>;
     async fn delete(&self, article_id: i32) -> Result<bool>;
@@ -52,10 +58,10 @@ impl ArticleRepo for ArticleRepoImpl {
 
     async fn get_by_id(&self, article_id: i32) -> Result<ArticleFromQuery> {
         let article = sqlx::query_as!(
-                ArticleFromQuery,
-                r#"
-                    SELECT 
-                        a.*, 
+            ArticleFromQuery,
+            r#"
+                    SELECT
+                        a.*,
                         u.name AS author_name,
                         u.avatar AS author_avatar,
                         c.name AS category_name,
@@ -66,13 +72,13 @@ impl ArticleRepo for ArticleRepoImpl {
                     LEFT JOIN category c ON a.category_id = c.id
                     LEFT JOIN article_tag a_t ON a.id = a_t.article_id
                     LEFT JOIN tag t ON a_t.tag_id = t.id
-                    GROUP BY a.id 
+                    GROUP BY a.id
                     HAVING a.id = ?
                 "#,
-                article_id,
-            )
-            .fetch_one(&*self.pool)
-            .await?;
+            article_id,
+        )
+        .fetch_one(&*self.pool)
+        .await?;
 
         Ok(article)
     }
@@ -81,7 +87,8 @@ impl ArticleRepo for ArticleRepoImpl {
         let article: Vec<_> = sqlx::query_as!(
             ArticleFromQuery,
             r#"
-                SELECT  a.*,
+                SELECT
+                        SQL_CALC_FOUND_ROWS a.*,
                         u.name AS author_name,
                         u.avatar AS author_avatar,
                         c.name AS category_name,
@@ -107,7 +114,90 @@ impl ArticleRepo for ArticleRepoImpl {
             .fetch_one(&*self.pool)
             .await?;
 
-        Ok(PagRsp { total, data: article })
+        Ok(PagRsp {
+            total,
+            data: article,
+        })
+    }
+
+    async fn get_list_by_category(
+        &self,
+        category_name: &str,
+        pag: &Pag,
+    ) -> Result<PagRsp<PreviewArticle>> {
+        let article: Vec<_> = sqlx::query_as!(
+            ArticleFromQuery,
+            r#"
+                SELECT  SQL_CALC_FOUND_ROWS a.*,
+                        u.name AS author_name,
+                        u.avatar AS author_avatar,
+                        c.name AS category_name,
+                        c.description AS category_description,
+                        GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
+                        FROM article a
+                        LEFT JOIN user u ON a.author_id = u.id
+                        LEFT JOIN category c ON a.category_id = c.id
+                        LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                        LEFT JOIN tag t ON a_t.tag_id = t.id
+                        GROUP BY a.id
+                        HAVING a.id = (SELECT id FROM category WHERE name = ?)
+                    ORDER BY a.created_at DESC LIMIT ?, ?;
+            "#,
+            category_name,
+            (pag.page_num.unwrap_or(1) - 1) * pag.page_size.unwrap_or(10),
+            pag.page_size.unwrap_or(10),
+        )
+        .fetch(&*self.pool)
+        .map_ok(ArticleFromQuery::into_preview_article)
+        .try_collect()
+        .await?;
+
+        let total = sqlx::query_scalar!(r#"select FOUND_ROWS() AS total"#)
+            .fetch_one(&*self.pool)
+            .await?;
+
+        Ok(PagRsp {
+            total,
+            data: article,
+        })
+    }
+
+    async fn get_list_by_tag(&self, tag_name: &str, pag: &Pag) -> Result<PagRsp<PreviewArticle>> {
+        let article: Vec<_> = sqlx::query_as!(
+            ArticleFromQuery,
+            r#"
+                SELECT  SQL_CALC_FOUND_ROWS a.*,
+                        u.name AS author_name,
+                        u.avatar AS author_avatar,
+                        c.name AS category_name,
+                        c.description AS category_description,
+                        GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
+                        FROM article a
+                        LEFT JOIN user u ON a.author_id = u.id
+                        LEFT JOIN category c ON a.category_id = c.id
+                        LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                        LEFT JOIN tag t ON a_t.tag_id = t.id
+                        GROUP BY a.id
+                        HAVING a.id = any (SELECT article_id FROM article_tag WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
+                    ORDER BY a.created_at DESC LIMIT ?, ?;
+            "#,
+            tag_name,
+            (pag.page_num.unwrap_or(1) - 1) * pag.page_size.unwrap_or(10),
+            pag.page_size.unwrap_or(10),
+        )
+        .fetch(&*self.pool)
+        .map_ok(ArticleFromQuery::into_preview_article)
+        .try_collect()
+        .await?;
+
+        let total = sqlx::query_scalar!(r#"select FOUND_ROWS() AS total"#)
+            .fetch_one(&*self.pool)
+            .await?;
+
+        Ok(PagRsp {
+            total,
+            data: article,
+        })
     }
 
     async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64> {

@@ -1,7 +1,4 @@
-use super::{
-    category::{ArticleCategory, Category},
-    user::{Profile, User},
-};
+use super::{category::ArticleCategory, user::Profile};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -39,13 +36,6 @@ pub struct UpdateArticle {
 
 #[derive(Serialize, Debug)]
 pub struct Article {
-    // pub title: String,
-    // pub slug: String,
-    // pub description: String,
-    // pub body: String,
-    // pub created_at: chrono::DateTime<chrono::Utc>,
-    // pub updated_at: chrono::DateTime<chrono::Utc>,
-    // pub author: User,
     pub title: String,
     pub slug: Option<String>,
     pub content: String,
@@ -100,29 +90,29 @@ pub struct PreviewArticle {
 }
 
 impl ArticleFromQuery {
-    pub fn into_article(self) -> Article {
-        Article {
-            title: self.title,
-            slug: self.slug,
-            content: self.content,
-            summary: self.summary,
-            cover: self.cover,
-            status: self.status,
-            read_count: self.read_count,
-            like_count: self.like_count,
-            is_top: self.is_top,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-            author: Profile {
-                name: self.author_name,
-                avatar: self.author_avatar,
-            },
-            category: ArticleCategory {
-                name: self.category_name,
-                description: self.category_description,
-            },
-        }
-    }
+    // pub fn into_article(self) -> Article {
+    //     Article {
+    //         title: self.title,
+    //         slug: self.slug,
+    //         content: self.content,
+    //         summary: self.summary,
+    //         cover: self.cover,
+    //         status: self.status,
+    //         read_count: self.read_count,
+    //         like_count: self.like_count,
+    //         is_top: self.is_top,
+    //         created_at: self.created_at,
+    //         updated_at: self.updated_at,
+    //         author: Profile {
+    //             name: self.author_name,
+    //             avatar: self.author_avatar,
+    //         },
+    //         category: ArticleCategory {
+    //             name: self.category_name,
+    //             description: self.category_description,
+    //         },
+    //     }
+    // }
 
     pub fn into_preview_article(self) -> PreviewArticle {
         PreviewArticle {
@@ -146,4 +136,3 @@ impl ArticleFromQuery {
         }
     }
 }
-

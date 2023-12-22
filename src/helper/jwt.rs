@@ -26,8 +26,6 @@ pub struct AuthUser {
 
 impl AuthUser {
     pub fn to_jwt(&self, secret: &Secret<String>) -> Result<String> {
-        let claims = AuthClaims::new(self.user_id);
-
         encode(self.user_id, secret.expose_secret())
     }
 }
@@ -67,7 +65,7 @@ where
 
         let state = Arc::<AppState>::from_ref(state);
 
-        let token_data = decode(bearer.token(), &state.secret.expose_secret())
+        let token_data = decode(bearer.token(), state.secret.expose_secret())
             .map_err(|_| Error::Auth(AuthError::InvalidToken))?;
 
         Ok(token_data.claims)

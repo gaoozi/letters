@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use self::{
     article::{ArticleRepo, ArticleRepoImpl},
-    user::{UserRepo, UserRepoImpl}, tag::{TagRepoImpl, TagRepo}, category::{CategoryRepoImpl, CategoryRepo},
+    category::{CategoryRepo, CategoryRepoImpl},
+    tag::{TagRepo, TagRepoImpl},
+    user::{UserRepo, UserRepoImpl},
 };
 
 pub mod article;
@@ -19,7 +21,7 @@ pub async fn create_repositories() -> RepoImpls {
         UserRepoImpl::new(db_pool.clone()),
         ArticleRepoImpl::new(db_pool.clone()),
         TagRepoImpl::new(db_pool.clone()),
-        CategoryRepoImpl::new(db_pool.clone())
+        CategoryRepoImpl::new(db_pool.clone()),
     )
 }
 
@@ -31,8 +33,12 @@ pub struct RepoImpls {
 }
 
 impl RepoImpls {
-    pub fn new(user_repo_impl: UserRepoImpl, article_repo_impl: ArticleRepoImpl, 
-        tag_repo_impl: TagRepoImpl, category_repo_impl: CategoryRepoImpl) -> Self {
+    pub fn new(
+        user_repo_impl: UserRepoImpl,
+        article_repo_impl: ArticleRepoImpl,
+        tag_repo_impl: TagRepoImpl,
+        category_repo_impl: CategoryRepoImpl,
+    ) -> Self {
         Self {
             user: user_repo_impl,
             article: article_repo_impl,
