@@ -16,6 +16,8 @@ pub trait ArticleRepo {
         pag: &Pag,
     ) -> Result<PagRsp<PreviewArticle>>;
     async fn get_list_by_tag(&self, tag_name: &str, pag: &Pag) -> Result<PagRsp<PreviewArticle>>;
+    async fn update_read_count(&self, article_id: i32) -> Result<()>;
+    async fn update_like_count(&self, article_id: i32) -> Result<()>;
     async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64>;
     async fn delete_article_tag(&self, article_id: i32, tag_id: i32) -> Result<bool>;
     async fn delete(&self, article_id: i32) -> Result<bool>;
@@ -94,12 +96,12 @@ impl ArticleRepo for ArticleRepoImpl {
                         c.name AS category_name,
                         c.description AS category_description,
                         GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
-                        FROM article a
-                        LEFT JOIN user u ON a.author_id = u.id
-                        LEFT JOIN category c ON a.category_id = c.id
-                        LEFT JOIN article_tag a_t ON a.id = a_t.article_id
-                        LEFT JOIN tag t ON a_t.tag_id = t.id
-                        GROUP BY a.id
+                    FROM article a
+                    LEFT JOIN user u ON a.author_id = u.id
+                    LEFT JOIN category c ON a.category_id = c.id
+                    LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                    LEFT JOIN tag t ON a_t.tag_id = t.id
+                    GROUP BY a.id
                     ORDER BY a.created_at DESC LIMIT ?, ?;
             "#,
             (pag.page_num.unwrap_or(1) - 1) * pag.page_size.unwrap_or(10),
@@ -134,13 +136,13 @@ impl ArticleRepo for ArticleRepoImpl {
                         c.name AS category_name,
                         c.description AS category_description,
                         GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
-                        FROM article a
-                        LEFT JOIN user u ON a.author_id = u.id
-                        LEFT JOIN category c ON a.category_id = c.id
-                        LEFT JOIN article_tag a_t ON a.id = a_t.article_id
-                        LEFT JOIN tag t ON a_t.tag_id = t.id
-                        GROUP BY a.id
-                        HAVING a.id = (SELECT id FROM category WHERE name = ?)
+                    FROM article a
+                    LEFT JOIN user u ON a.author_id = u.id
+                    LEFT JOIN category c ON a.category_id = c.id
+                    LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                    LEFT JOIN tag t ON a_t.tag_id = t.id
+                    GROUP BY a.id
+                    HAVING a.id = (SELECT id FROM category WHERE name = ?)
                     ORDER BY a.created_at DESC LIMIT ?, ?;
             "#,
             category_name,
@@ -172,13 +174,13 @@ impl ArticleRepo for ArticleRepoImpl {
                         c.name AS category_name,
                         c.description AS category_description,
                         GROUP_CONCAT(DISTINCT t.name SEPARATOR " ") AS tag_names
-                        FROM article a
-                        LEFT JOIN user u ON a.author_id = u.id
-                        LEFT JOIN category c ON a.category_id = c.id
-                        LEFT JOIN article_tag a_t ON a.id = a_t.article_id
-                        LEFT JOIN tag t ON a_t.tag_id = t.id
-                        GROUP BY a.id
-                        HAVING a.id = any (SELECT article_id FROM article_tag WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
+                    FROM article a
+                    LEFT JOIN user u ON a.author_id = u.id
+                    LEFT JOIN category c ON a.category_id = c.id
+                    LEFT JOIN article_tag a_t ON a.id = a_t.article_id
+                    LEFT JOIN tag t ON a_t.tag_id = t.id
+                    GROUP BY a.id
+                    HAVING a.id = any (SELECT article_id FROM article_tag WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                     ORDER BY a.created_at DESC LIMIT ?, ?;
             "#,
             tag_name,
@@ -198,6 +200,32 @@ impl ArticleRepo for ArticleRepoImpl {
             total,
             data: article,
         })
+    }
+
+    async fn update_read_count(&self, article_id: i32) -> Result<()> {
+        sqlx::query!(
+            r#"
+                UPDATE article SET read_count = read_count + 1 WHERE id = ?;
+            "#,
+            article_id,
+        )
+        .execute(&*self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_like_count(&self, article_id: i32) -> Result<()> {
+        sqlx::query!(
+            r#"
+                UPDATE article SET like_count = like_count + 1 WHERE id = ?;
+            "#,
+            article_id,
+        )
+        .execute(&*self.pool)
+        .await?;
+
+        Ok(())
     }
 
     async fn add_article_tag(&self, article_id: i32, tag_id: i32) -> Result<u64> {
