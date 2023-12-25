@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize)]
 pub struct Tag {
     pub id: i32,
     pub name: String,
