@@ -14,6 +14,7 @@ pub enum Error {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+
     #[error("{0}")]
     UnprocessableEntity(String),
 }

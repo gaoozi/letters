@@ -16,7 +16,7 @@ pub struct User {
     pub avatar: Option<String>,
     pub created_at: Option<NaiveDateTime>,
     pub last_seen: Option<NaiveDateTime>,
-    pub is_active: Option<bool>,
+    pub is_active: Option<i8>,
 }
 
 #[derive(Serialize, Debug)]
