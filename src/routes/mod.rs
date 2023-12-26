@@ -4,6 +4,7 @@ use axum::Router;
 
 use crate::app::AppState;
 
+mod article;
 mod category;
 mod tag;
 mod user;
@@ -13,4 +14,5 @@ pub fn api_router() -> Router<Arc<AppState>> {
         .nest("/users", user::router())
         .nest("/categories", category::router())
         .nest("/tags", tag::router())
+        .nest("/articles", article::router())
 }

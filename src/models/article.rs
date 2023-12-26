@@ -75,6 +75,7 @@ pub struct ArticleFromQuery {
     pub tag_names: Option<String>,
 }
 
+#[derive(Debug, Serialize)]
 pub struct PreviewArticle {
     pub title: String,
     pub slug: Option<String>,
@@ -90,29 +91,29 @@ pub struct PreviewArticle {
 }
 
 impl ArticleFromQuery {
-    // pub fn into_article(self) -> Article {
-    //     Article {
-    //         title: self.title,
-    //         slug: self.slug,
-    //         content: self.content,
-    //         summary: self.summary,
-    //         cover: self.cover,
-    //         status: self.status,
-    //         read_count: self.read_count,
-    //         like_count: self.like_count,
-    //         is_top: self.is_top,
-    //         created_at: self.created_at,
-    //         updated_at: self.updated_at,
-    //         author: Profile {
-    //             name: self.author_name,
-    //             avatar: self.author_avatar,
-    //         },
-    //         category: ArticleCategory {
-    //             name: self.category_name,
-    //             description: self.category_description,
-    //         },
-    //     }
-    // }
+    pub fn into_article(self) -> Article {
+        Article {
+            title: self.title,
+            slug: self.slug,
+            content: self.content,
+            summary: self.summary,
+            cover: self.cover,
+            status: self.status,
+            read_count: self.read_count,
+            like_count: self.like_count,
+            is_top: self.is_top,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            author: Profile {
+                name: self.author_name,
+                avatar: self.author_avatar,
+            },
+            category: ArticleCategory {
+                name: self.category_name,
+                description: self.category_description,
+            },
+        }
+    }
 
     pub fn into_preview_article(self) -> PreviewArticle {
         PreviewArticle {
