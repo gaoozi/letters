@@ -33,6 +33,7 @@ dotenvy = "0.15"
 
 # hash
 argon2 = { version = "0.5", features = ["std"] }
+blake2 = "0.10"
 base64 = "0.21"
 
 # jwt

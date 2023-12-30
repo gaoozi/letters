@@ -1,4 +1,5 @@
 use crate::error::{Error, Result, ResultExt};
+use crate::helper::avatar::get_avatar_url;
 use crate::helper::hash::{generate_hash, verify_password};
 use crate::models::user::UpdateUser;
 use crate::{
@@ -33,12 +34,13 @@ impl UserRepo for UserRepoImpl {
 
         let user_id = sqlx::query!(
             r#"
-                INSERT INTO user(name, email, password_hash)
-                VALUES (?, ?, ?)
+                INSERT INTO user(name, email, password_hash, avatar)
+                VALUES (?, ?, ?, ?)
             "#,
             user_data.name,
             user_data.email,
             password_hash,
+            get_avatar_url(&user_data.email, 64),
         )
         .execute(&*self.pool)
         .await
