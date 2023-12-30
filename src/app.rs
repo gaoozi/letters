@@ -6,6 +6,7 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
 use crate::{
+    conf::Conf,
     repositories::{create_repositories, RepoImpls},
     routes::api_router,
 };
@@ -15,10 +16,10 @@ pub struct AppState {
     pub repo: RepoImpls,
 }
 
-pub async fn serve() {
+pub async fn serve(conf: Conf) {
     let state = Arc::new(AppState {
         repo: create_repositories().await,
-        secret: Secret::new("".to_string()),
+        secret: Secret::new(conf.auth.secret),
     });
 
     let app = Router::new()

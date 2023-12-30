@@ -1,0 +1,6 @@
+[server]
+port = 5000
+mode = "debug"
+
+[auth]
+secret = "This is a complex secret"

@@ -27,7 +27,8 @@ serde_json = "1.0"
 # error handle
 thiserror = "1.0"
 
-# dotenv
+# config
+config = "0.13"
 dotenvy = "0.15"
 
 # hash

@@ -1,3 +1,5 @@
+use std::env;
+
 use tracing_appender::{
     non_blocking::WorkerGuard,
     rolling::{RollingFileAppender, Rotation},
@@ -5,9 +7,10 @@ use tracing_appender::{
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 
 pub fn setup() -> Vec<WorkerGuard> {
+    let log_env = env::var("RUST_LOG").expect("Can't found 'RUST_LOG' env.");
+
     let mut guards = Vec::new();
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| "letters=debug,tower_http=debug,axum::rejection=trace".into());
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| log_env.into());
 
     let console_layer = tracing_subscriber::fmt::layer()
         .pretty()
