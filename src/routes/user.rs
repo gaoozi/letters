@@ -36,7 +36,7 @@ async fn login_user(
     let user = state
         .repo
         .user()
-        .check(req.user.email, req.user.password)
+        .check(req.user.email, &req.user.password)
         .await?;
 
     Ok(Json(UserBody {

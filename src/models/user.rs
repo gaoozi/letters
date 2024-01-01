@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use secrecy::Secret;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -29,7 +30,7 @@ pub struct Profile {
 pub struct NewUser {
     pub name: String,
     pub email: String,
-    pub password: String,
+    pub password: Secret<String>,
 }
 
 #[derive(Deserialize, Default, PartialEq, Eq)]
@@ -44,11 +45,11 @@ pub struct UpdateUser {
 #[derive(Deserialize, Debug)]
 pub struct LoginUser {
     pub email: String,
-    pub password: String,
+    pub password: Secret<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct ResetPassword {
-    pub old_password: String,
-    pub new_password: String,
+    pub old_password: Secret<String>,
+    pub new_password: Secret<String>,
 }

@@ -38,7 +38,7 @@ base64 = "0.21"
 
 # jwt
 jsonwebtoken = "9.2"
-secrecy = "0.8"
+secrecy = { version = "0.8", features = ["serde"]}
 
 # time
 chrono = { version = "0.4", features = ["serde"]}

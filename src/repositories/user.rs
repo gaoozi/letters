@@ -7,6 +7,7 @@ use crate::{
     repositories::Db,
 };
 use axum::async_trait;
+use secrecy::{ExposeSecret, Secret};
 
 #[async_trait]
 pub trait UserRepo {
@@ -14,7 +15,7 @@ pub trait UserRepo {
     async fn update(&self, user_id: i32, user_data: UpdateUser) -> Result<bool>;
     async fn get(&self, user_id: i32) -> Result<User>;
     async fn get_list(&self) -> Result<Vec<User>>;
-    async fn check(&self, email: String, password: String) -> Result<User>;
+    async fn check(&self, email: String, password: &Secret<String>) -> Result<User>;
 }
 
 pub struct UserRepoImpl {
@@ -39,7 +40,7 @@ impl UserRepo for UserRepoImpl {
             "#,
             user_data.name,
             user_data.email,
-            password_hash,
+            password_hash.expose_secret(),
             get_avatar_url(&user_data.email, 64),
         )
         .execute(&*self.pool)
@@ -121,7 +122,7 @@ impl UserRepo for UserRepoImpl {
         .map_err(Error::Sqlx)
     }
 
-    async fn check(&self, email: String, password: String) -> Result<User> {
+    async fn check(&self, email: String, password: &Secret<String>) -> Result<User> {
         let user = sqlx::query!(
             r#"select id, email, name, bio, avatar, password_hash, created_at, last_seen, is_active from user where email = ?"#,
             email,
@@ -132,7 +133,7 @@ impl UserRepo for UserRepoImpl {
             "email does not exist".to_string(),
         ))?;
 
-        verify_password(&password, &user.password_hash)?;
+        verify_password(password, &Secret::new(user.password_hash))?;
 
         Ok(User {
             id: user.id,
