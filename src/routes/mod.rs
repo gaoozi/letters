@@ -7,7 +7,7 @@ use crate::app::AppState;
 mod article;
 mod category;
 mod tag;
-mod user;
+pub mod user;
 
 pub fn api_router() -> Router<Arc<AppState>> {
     Router::new()

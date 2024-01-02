@@ -20,7 +20,8 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/login", post(login_user))
 }
 
-async fn create_user(
+#[utoipa::path(post, path = "/users")]
+pub async fn create_user(
     State(state): State<Arc<AppState>>,
     Json(req): Json<UserBody<NewUser>>,
 ) -> Result<Json<UserBody<User>>> {
@@ -29,7 +30,8 @@ async fn create_user(
     Ok(Json(UserBody { token: None, user }))
 }
 
-async fn login_user(
+#[utoipa::path(post, path = "/users/login")]
+pub async fn login_user(
     State(state): State<Arc<AppState>>,
     Json(req): Json<UserBody<LoginUser>>,
 ) -> Result<Json<UserBody<User>>> {
@@ -45,7 +47,8 @@ async fn login_user(
     }))
 }
 
-async fn get_current_user(
+#[utoipa::path(get, path = "/users")]
+pub async fn get_current_user(
     auth_user: AuthClaims,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<UserBody<User>>> {
@@ -53,7 +56,8 @@ async fn get_current_user(
     Ok(Json(UserBody { token: None, user }))
 }
 
-async fn update_user(
+#[utoipa::path(put, path = "/users")]
+pub async fn update_user(
     auth_user: AuthClaims,
     State(state): State<Arc<AppState>>,
     Json(req): Json<UserBody<UpdateUser>>,
