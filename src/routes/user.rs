@@ -20,15 +20,6 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/login", post(login_user))
 }
 
-#[utoipa::path(
-    post,
-    path = "/users",
-    params(UserBody<NewUser>),
-    responses(
-        (status = 200, description = "Create new user", body=UserBody<User>),
-        (status = 200, description = "Username or email already exists", body=Error),
-    )
-)]
 pub async fn create_user(
     State(state): State<Arc<AppState>>,
     Json(req): Json<UserBody<NewUser>>,

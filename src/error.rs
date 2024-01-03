@@ -1,11 +1,10 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 use sqlx::error::DatabaseError;
-use utoipa::ToSchema;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(thiserror::Error, Debug, ToSchema)]
+#[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("fail to hash password")]
     FailToHashPassword(#[from] argon2::password_hash::Error),

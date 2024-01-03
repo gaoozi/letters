@@ -1,15 +1,14 @@
 use chrono::NaiveDateTime;
 use secrecy::Secret;
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 
-#[derive(Serialize, Deserialize, ToSchema, IntoParams)]
+#[derive(Serialize, Deserialize)]
 pub struct UserBody<T> {
     pub token: Option<String>,
     pub user: T,
 }
 
-#[derive(Serialize, Deserialize, Debug, ToSchema)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     pub id: i32,
     pub name: String,
@@ -27,14 +26,14 @@ pub struct Profile {
     pub avatar: Option<String>,
 }
 
-#[derive(Deserialize, Debug, ToSchema)]
+#[derive(Deserialize, Debug)]
 pub struct NewUser {
     pub name: String,
     pub email: String,
     pub password: Secret<String>,
 }
 
-#[derive(Deserialize, Default, PartialEq, Eq, ToSchema)]
+#[derive(Deserialize, Default, PartialEq, Eq)]
 #[serde(default)] // fill in any missing fields with `..UpdateUser::default()`
 pub struct UpdateUser {
     pub name: Option<String>,
@@ -43,7 +42,7 @@ pub struct UpdateUser {
     pub avatar: Option<String>,
 }
 
-#[derive(Deserialize, Debug, ToSchema)]
+#[derive(Deserialize, Debug)]
 pub struct LoginUser {
     pub email: String,
     pub password: Secret<String>,
