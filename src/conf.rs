@@ -1,33 +1,60 @@
-use std::env;
-
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, Environment, File};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Server {
     pub port: u16,
+    pub log_level: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
+pub struct Database {
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
 pub struct Auth {
     pub secret: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Conf {
-    pub server: Server,
-    pub auth: Auth,
+#[derive(Debug, Deserialize, Default)]
+pub struct ConfInfo {
+    pub location: Option<String>,
+    pub env_prefix: Option<String>,
 }
 
-pub fn init() -> Result<Conf, ConfigError> {
-    let run_mode = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
+#[derive(Debug, Deserialize, Default)]
+pub struct Conf {
+    #[serde[default]]
+    pub server: Server,
+    #[serde[default]]
+    pub database: Database,
+    #[serde[default]]
+    pub auth: Auth,
+    #[serde[default]]
+    pub info: ConfInfo,
+}
 
-    let builder = Config::builder()
-        .add_source(File::with_name("config/default"))
-        .add_source(File::with_name(&format!("config/{}", run_mode)).required(false))
-        .add_source(File::with_name("config/local").required(false))
-        .add_source(Environment::with_prefix("letters"))
-        .build()?;
+impl Conf {
+    pub fn new(location: &str, env_prefix: &str) -> anyhow::Result<Self> {
+        //     let builder = Config::builder()
+        //         .add_source(File::with_name("config/default"))
+        //         .add_source(File::with_name(&format!("config/{}", run_mode)).required(false))
+        //         .add_source(File::with_name("config/local").required(false))
+        //         .add_source(Environment::with_prefix("letters"))
+        //         .build()?;
 
-    builder.try_deserialize()
+        let builder = Config::builder()
+            .add_source(File::with_name(location))
+            .add_source(
+                Environment::with_prefix(env_prefix)
+                    .separator("__")
+                    .prefix("__"),
+            )
+            .set_override("info.location", location)?
+            .set_override("info.env_prefix", env_prefix)?
+            .build()?;
+
+        Ok(builder.try_deserialize()?)
+    }
 }

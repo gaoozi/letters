@@ -16,10 +16,10 @@ pub struct AppState {
     pub repo: RepoImpls,
 }
 
-pub async fn serve(conf: Conf) {
+pub async fn serve(port: u16, conf: &Conf) {
     let state = Arc::new(AppState {
         repo: create_repositories().await,
-        secret: Secret::new(conf.auth.secret),
+        secret: Secret::new(conf.auth.secret.to_owned()),
     });
 
     let app = Router::new()
@@ -31,9 +31,8 @@ pub async fn serve(conf: Conf) {
         )
         .with_state(Arc::clone(&state));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
+    let addr = format!("127.0.0.1:{}", port);
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
     tracing::debug!("Listening on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap()

@@ -1,22 +1,17 @@
-mod app;
-mod conf;
-mod error;
-mod helper;
-mod log;
-mod models;
-mod repositories;
-mod routes;
-
 use dotenvy::dotenv;
-use error::Result;
+use letters::{cmd, conf::Conf, log};
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    dotenv().expect(".env file not found");
+fn main() -> anyhow::Result<()> {
+    dotenv().ok();
 
-    let _guards = log::setup();
-    let conf = conf::init().expect("Initial config failed!");
+    log::setup();
 
-    app::serve(conf).await;
+    let cli = cmd::setup()?;
+
+    let location = cli.config.clone().unwrap_or("".to_string());
+    let conf = Conf::new(&location, "LETTERS")?;
+
+    cmd::handle(&cli, &conf)?;
+
     Ok(())
 }
