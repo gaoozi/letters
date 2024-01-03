@@ -4,20 +4,11 @@ use axum::Router;
 use secrecy::Secret;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
-use utoipa_rapidoc::RapiDoc;
-use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     conf::Conf,
     repositories::{create_repositories, RepoImpls},
     routes,
-};
-use utoipa::{
-    openapi::{
-        self,
-        security::{ApiKey, ApiKeyValue, SecurityScheme},
-    },
-    Modify, OpenApi,
 };
 
 pub struct AppState {
@@ -26,38 +17,12 @@ pub struct AppState {
 }
 
 pub async fn serve(conf: Conf) {
-    #[derive(OpenApi)]
-    #[openapi(
-        paths(
-            routes::user::create_user,
-            routes::user::get_current_user,
-            routes::user::login_user,
-            routes::user::update_user,
-        ),
-        components(schemas())
-    )]
-    struct ApiDoc;
-    struct SecurityAddon;
-
-    impl Modify for SecurityAddon {
-        fn modify(&self, openapi: &mut openapi::OpenApi) {
-            if let Some(components) = openapi.components.as_mut() {
-                components.add_security_scheme(
-                    "api_key",
-                    SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("letters_apikey"))),
-                )
-            }
-        }
-    }
-
     let state = Arc::new(AppState {
         repo: create_repositories().await,
         secret: Secret::new(conf.auth.secret),
     });
 
     let app = Router::new()
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .merge(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
         .nest("/api", routes::api_router())
         .layer(
             TraceLayer::new_for_http()
