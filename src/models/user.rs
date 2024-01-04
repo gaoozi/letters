@@ -43,12 +43,6 @@ pub struct UpdateUser {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct LoginUser {
-    pub email: String,
-    pub password: Secret<String>,
-}
-
-#[derive(Deserialize, Debug)]
 pub struct ResetPassword {
     pub old_password: Secret<String>,
     pub new_password: Secret<String>,

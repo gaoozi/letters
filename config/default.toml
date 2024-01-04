@@ -4,6 +4,7 @@ mode = "debug"
 
 [auth]
 secret = "This is a complex secret"
+timeout_seconds = 3600
 
 #[database]
 #url = "mysql://user:password@localhost/database"

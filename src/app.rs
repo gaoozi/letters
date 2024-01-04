@@ -6,24 +6,28 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
 use crate::{
+    api,
     conf::Conf,
     repositories::{create_repositories, RepoImpls},
     routes,
 };
 
 pub struct AppState {
-    pub secret: Secret<String>,
     pub repo: RepoImpls,
+    pub secret: Secret<String>,
+    pub conf: Arc<Conf>,
 }
 
 pub async fn serve(port: u16, conf: &Conf) {
     let state = Arc::new(AppState {
         repo: create_repositories().await,
         secret: Secret::new(conf.auth.secret.to_owned()),
+        conf: Arc::new(conf.clone()),
     });
 
     let app = Router::new()
         .nest("/api", routes::api_router())
+        .nest("/api1", api::router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -34,6 +38,6 @@ pub async fn serve(port: u16, conf: &Conf) {
     let addr = format!("127.0.0.1:{}", port);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-    tracing::debug!("Listening on http://{}", listener.local_addr().unwrap());
+    tracing::info!("Listening on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap()
 }

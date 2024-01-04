@@ -6,7 +6,8 @@ use axum::{Json, Router};
 
 use crate::error::Result;
 use crate::helper::jwt::{AuthClaims, AuthUser};
-use crate::models::user::{LoginUser, UpdateUser};
+use crate::models::auth::LoginRequest;
+use crate::models::user::UpdateUser;
 use crate::{
     app::AppState,
     models::user::{NewUser, User, UserBody},
@@ -31,7 +32,7 @@ pub async fn create_user(
 
 pub async fn login_user(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<UserBody<LoginUser>>,
+    Json(req): Json<UserBody<LoginRequest>>,
 ) -> Result<Json<UserBody<User>>> {
     let user = state
         .repo
@@ -40,7 +41,10 @@ pub async fn login_user(
         .await?;
 
     Ok(Json(UserBody {
-        token: Some(AuthUser { user_id: user.id }.to_jwt(&state.secret)?),
+        token: Some(
+            AuthUser { user_id: user.id }
+                .to_jwt(&state.conf.auth.secret, state.conf.auth.timeout_seconds)?,
+        ),
         user,
     }))
 }

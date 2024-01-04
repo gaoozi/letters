@@ -1,3 +1,4 @@
+mod api;
 pub mod app;
 pub mod cmd;
 pub mod conf;
