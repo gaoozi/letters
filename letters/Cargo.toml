@@ -1,0 +1,51 @@
+[package]
+name = "letters"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+migration = { path = "../migration"}
+entity = { path = "../entity" }
+sea-orm-migration = "^0.12.0"
+
+axum = "0.7"
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.5", features = ["trace"] }
+futures = "0.3"
+
+# log, tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+
+# database
+sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql", "chrono" ] }
+sea-orm = { version = "0.12", features = [ "sqlx-mysql", "runtime-tokio-rustls", "macros" ] }
+
+# serialize/deserialize
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# error handle
+anyhow = "1.0"
+thiserror = "1.0"
+
+# config
+config = "0.13"
+dotenvy = "0.15"
+
+# hash
+argon2 = { version = "0.5", features = ["std"] }
+blake2 = "0.10"
+base64 = "0.21"
+
+# jwt
+jsonwebtoken = "9.2"
+secrecy = { version = "0.8", features = ["serde", "default"]}
+chrono = { version = "0.4", features = ["serde"]}
+
+# cmdline
+clap = { version = "4.4", features = ["derive"] }
