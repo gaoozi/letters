@@ -20,16 +20,16 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct AuthClaims {
-    pub sub: i32,
+    pub user_id: i32,
     pub iat: usize, // issued at
     pub exp: usize, // expiration
 }
 
 impl AuthClaims {
-    pub fn new(sub: i32, expire_time: i64) -> Self {
+    pub fn new(user_id: i32, expire_time: i64) -> Self {
         let now = chrono::Utc::now();
         Self {
-            sub,
+            user_id,
             iat: now.timestamp() as usize,
             exp: (now + chrono::Duration::seconds(expire_time)).timestamp() as usize,
         }

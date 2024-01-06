@@ -1,7 +1,7 @@
 use clap::Args;
 
-use crate::{conf::Conf, utils::hash::generate_hash};
-use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, Database, EntityTrait, QueryFilter};
+use crate::{conf::Conf, dto::user::NewUser, repos::user};
+use sea_orm::Database;
 
 #[derive(Debug, Args)]
 pub struct Cmd {
@@ -27,29 +27,22 @@ pub fn handle(cmd: &Cmd, conf: &Conf) -> anyhow::Result<()> {
                 .await
                 .expect("Database connection failed");
 
-            // TODO!
-            let admins = entity::user::Entity::find()
-                .filter(entity::user::Column::Username.eq("admin"))
-                .all(&conn)
-                .await?;
-
-            if !admins.is_empty() {
+            if user::check_username_exist(&conn, "admin").await? {
                 println!("Admin user already exists");
                 return Ok::<(), anyhow::Error>(());
             }
 
-            let admin_model = entity::user::ActiveModel {
-                username: ActiveValue::Set("admin".to_owned()),
-                email: ActiveValue::Set(email),
-                password_hash: ActiveValue::Set(generate_hash(&password)?),
-                ..Default::default()
-            };
+            user::create(
+                &conn,
+                &NewUser {
+                    username: "admin".to_string(),
+                    email,
+                    password,
+                },
+            )
+            .await?;
 
-            if let Ok(_admin) = admin_model.save(&conn).await {
-                println!("Admin user created.");
-            } else {
-                println!("Failed to create admin user");
-            }
+            println!("Admin user created.");
 
             Ok(())
         })?;

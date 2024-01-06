@@ -1,3 +1,4 @@
+mod user;
 mod v1;
 
 use crate::app::AppState;

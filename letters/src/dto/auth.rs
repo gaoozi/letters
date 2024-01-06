@@ -1,13 +1,12 @@
 use serde::Deserialize;
+use serde::Serialize;
+use utoipa::ToSchema;
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthRequest {
     pub email: String,
     pub password: String,
 }
-
-use serde::Serialize;
-use utoipa::ToSchema;
 
 #[derive(Serialize, ToSchema)]
 pub struct AuthResponse {
