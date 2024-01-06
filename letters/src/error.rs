@@ -15,6 +15,8 @@ pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 pub enum AppError {
     #[error("{0} not found")]
     NotFound(Resource),
+    #[error("{0} already exists")]
+    ResourceExistsError(Resource),
     #[error(transparent)]
     Database(#[from] sea_orm::DbErr),
     #[error(transparent)]
@@ -39,6 +41,10 @@ impl AppError {
     fn response(&self) -> (StatusCode, ErrorResponse) {
         match self {
             AppError::NotFound(resource) => (
+                StatusCode::NOT_FOUND,
+                ErrorResponse::new("".to_string(), resource.detail.clone(), self.to_string()),
+            ),
+            AppError::ResourceExistsError(resource) => (
                 StatusCode::NOT_FOUND,
                 ErrorResponse::new("".to_string(), resource.detail.clone(), self.to_string()),
             ),

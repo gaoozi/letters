@@ -1,3 +1,5 @@
+mod category;
+mod tag;
 mod user;
 mod v1;
 

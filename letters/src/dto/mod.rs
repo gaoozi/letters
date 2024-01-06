@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
 pub mod auth;
+pub mod category;
+pub mod tag;
 pub mod user;
 
 #[derive(Debug, Deserialize, ToSchema, IntoParams)]
