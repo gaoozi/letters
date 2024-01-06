@@ -1,16 +1,9 @@
 use std::sync::Arc;
 
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::post, Router};
 
-use crate::app::AppState;
-
-use super::handlers;
+use crate::{app::AppState, handlers};
 
 pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/ping", get(handlers::ping::ping))
-        .route("/login", post(handlers::login::login))
+    Router::new().route("/authorize", post(handlers::auth::authorize))
 }

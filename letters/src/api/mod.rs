@@ -1,6 +1,3 @@
-mod handlers;
-mod request;
-mod response;
 mod v1;
 
 use crate::app::AppState;

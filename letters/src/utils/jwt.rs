@@ -1,3 +1,76 @@
+use axum::{
+    async_trait,
+    extract::{FromRef, FromRequestParts},
+    http::request::Parts,
+    RequestPartsExt,
+};
+use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
+};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation};
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+
+use crate::{
+    app::AppState,
+    error::{AppError, AppResult},
+};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuthClaims {
+    pub sub: i32,
+    pub iat: usize, // issued at
+    pub exp: usize, // expiration
+}
+
+impl AuthClaims {
+    pub fn new(sub: i32, expire_time: i64) -> Self {
+        let now = chrono::Utc::now();
+        Self {
+            sub,
+            iat: now.timestamp() as usize,
+            exp: (now + chrono::Duration::seconds(expire_time)).timestamp() as usize,
+        }
+    }
+
+    pub fn encode(&self, secret: &str) -> AppResult<String> {
+        let encoding_key = EncodingKey::from_secret(secret.as_ref());
+
+        jsonwebtoken::encode(&Header::default(), self, &encoding_key).map_err(AppError::Jwt)
+    }
+
+    pub fn decode(token: &str, secret: &str) -> AppResult<TokenData<Self>> {
+        let decoding_key = DecodingKey::from_secret(secret.as_ref());
+
+        jsonwebtoken::decode(token, &decoding_key, &Validation::default()).map_err(AppError::Jwt)
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for AuthClaims
+where
+    Arc<AppState>: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        // Extract the token from the authorization header
+        let TypedHeader(Authorization(bearer)) = parts
+            .extract::<TypedHeader<Authorization<Bearer>>>()
+            .await
+            .map_err(AppError::TypeHeader)?;
+
+        let state = Arc::<AppState>::from_ref(state);
+
+        // Decode the user data
+        let token_data = AuthClaims::decode(bearer.token(), &state.conf.auth.secret)?;
+        Ok(token_data.claims)
+    }
+}
+
+/*
 use std::sync::Arc;
 
 use axum::{
@@ -86,3 +159,5 @@ pub fn decode(token: &str, secret: &str) -> Result<TokenData<AuthClaims>> {
     jsonwebtoken::decode(token, &decoding_key, &Validation::default())
         .map_err(|_| Error::Auth(AuthError::InvalidToken))
 }
+
+*/

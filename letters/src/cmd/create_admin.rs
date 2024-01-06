@@ -1,6 +1,6 @@
 use clap::Args;
 
-use crate::{conf::Conf, helper::hash::generate_hash};
+use crate::{conf::Conf, utils::hash::generate_hash};
 use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, Database, EntityTrait, QueryFilter};
 
 #[derive(Debug, Args)]

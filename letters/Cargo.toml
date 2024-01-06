@@ -41,6 +41,7 @@ dotenvy = "0.15"
 argon2 = { version = "0.5", features = ["std"] }
 blake2 = "0.10"
 base64 = "0.21"
+strum = { version = "0.25", features = ["derive"] }
 
 # jwt
 jsonwebtoken = "9.2"

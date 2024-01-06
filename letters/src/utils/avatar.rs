@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose, Engine};
 use blake2::{Blake2s256, Digest};
 
-pub fn get_avatar_url(email: &str, size: i32) -> String {
+pub fn _get_avatar_url(email: &str, size: i32) -> String {
     // create a Blake2b512 object
     let mut hasher = Blake2s256::new();
     // write input message
