@@ -11,13 +11,14 @@ use axum_extra::{
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::{
     app::AppState,
     error::{AppError, AppResult},
 };
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct AuthClaims {
     pub sub: i32,
     pub iat: usize, // issued at

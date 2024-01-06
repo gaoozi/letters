@@ -4,8 +4,11 @@ use axum::Router;
 use sea_orm::{Database, DatabaseConnection};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
+use utoipa::OpenApi;
+use utoipa_rapidoc::RapiDoc;
+use utoipa_swagger_ui::SwaggerUi;
 
-use crate::{api, conf::Conf};
+use crate::{api, conf::Conf, handlers::openapi::ApiDoc};
 
 pub struct AppState {
     pub dbc: Arc<DatabaseConnection>,
@@ -24,6 +27,8 @@ pub async fn serve(port: u16, conf: &Conf) {
     });
 
     let app = Router::new()
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .merge(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
         .nest("/api", api::router())
         .layer(
             TraceLayer::new_for_http()

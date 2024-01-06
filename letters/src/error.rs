@@ -7,10 +7,11 @@ use axum::{
 };
 use serde::Serialize;
 use strum::EnumString;
+use utoipa::ToSchema;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
-#[derive(thiserror::Error)]
+#[derive(thiserror::Error, ToSchema)]
 pub enum AppError {
     #[error("{0} not found")]
     NotFound(Resource),
@@ -18,10 +19,20 @@ pub enum AppError {
     Database(#[from] sea_orm::DbErr),
     #[error(transparent)]
     Jwt(#[from] jsonwebtoken::errors::Error),
+    #[error("{0}")]
+    HashError(String),
+    #[error("{0}")]
+    InvalidInput(String),
     #[error(transparent)]
     TypeHeader(#[from] axum_extra::typed_header::TypedHeaderRejection),
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
+}
+
+impl From<argon2::password_hash::Error> for AppError {
+    fn from(value: argon2::password_hash::Error) -> Self {
+        AppError::HashError(value.to_string())
+    }
 }
 
 impl AppError {
@@ -39,20 +50,32 @@ impl AppError {
                     String::from("Database error."),
                 ),
             ),
-            AppError::TypeHeader(_) => (
-                StatusCode::BAD_REQUEST,
-                ErrorResponse::new(
-                    "".to_string(),
-                    self.to_string(),
-                    String::from("Invalid token"),
-                ),
-            ),
             AppError::Jwt(_) => (
                 StatusCode::UNAUTHORIZED,
                 ErrorResponse::new(
                     "".to_string(),
                     self.to_string(),
                     String::from("Unauthorized error."),
+                ),
+            ),
+            AppError::HashError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorResponse::new(
+                    "".to_string(),
+                    self.to_string(),
+                    String::from("Hash error."),
+                ),
+            ),
+            AppError::InvalidInput(_) => (
+                StatusCode::BAD_REQUEST,
+                ErrorResponse::new("".to_string(), self.to_string(), self.to_string()),
+            ),
+            AppError::TypeHeader(_) => (
+                StatusCode::BAD_REQUEST,
+                ErrorResponse::new(
+                    "".to_string(),
+                    self.to_string(),
+                    String::from("Invalid token"),
                 ),
             ),
             AppError::Unexpected(_) => (
@@ -89,7 +112,7 @@ fn error_chain_fmt(
     Ok(())
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct ErrorResponse {
     pub code: String,
     pub error: String,
