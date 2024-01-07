@@ -1,4 +1,4 @@
-use sea_orm::prelude::DateTimeUtc;
+use sea_orm::{prelude::DateTimeUtc, FromQueryResult};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -21,6 +21,12 @@ pub struct CategoryResponse {
     pub description: Option<String>,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,
+}
+
+#[derive(Serialize, FromQueryResult)]
+pub struct ArticleCategory {
+    pub id: i32,
+    pub name: String,
 }
 
 impl From<entity::category::Model> for CategoryResponse {

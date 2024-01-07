@@ -12,5 +12,8 @@ pub fn router() -> Router<Arc<AppState>> {
             "/",
             get(handlers::category::get_categories).post(handlers::category::create_category),
         )
-        .route("/:category_id", put(handlers::category::update_category))
+        .route(
+            "/:category_id",
+            put(handlers::category::update_category).delete(handlers::category::delete_category),
+        )
 }

@@ -73,6 +73,11 @@ pub async fn read_all(dbc: &DatabaseConnection) -> AppResult<Vec<TagEntity::Mode
     Ok(models)
 }
 
+pub async fn delete_by_id(dbc: &DatabaseConnection, tag_id: i32) -> AppResult<()> {
+    TagEntity::Entity::delete_by_id(tag_id).exec(dbc).await?;
+    Ok(())
+}
+
 pub async fn check_name_exist(
     dbc: &DatabaseConnection,
     name: &str,

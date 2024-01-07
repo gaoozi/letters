@@ -70,6 +70,13 @@ pub async fn read_all(dbc: &DatabaseConnection) -> AppResult<Vec<CategoryEntity:
     Ok(models)
 }
 
+pub async fn delete_by_id(dbc: &DatabaseConnection, category_id: i32) -> AppResult<()> {
+    CategoryEntity::Entity::delete_by_id(category_id)
+        .exec(dbc)
+        .await?;
+    Ok(())
+}
+
 pub async fn check_name_exist(
     dbc: &DatabaseConnection,
     name: &str,

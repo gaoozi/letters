@@ -1,4 +1,4 @@
-use sea_orm::prelude::DateTimeUtc;
+use sea_orm::{prelude::DateTimeUtc, FromQueryResult};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
@@ -23,6 +23,12 @@ pub struct UserProfile {
     pub avatar: Option<String>,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,
+}
+
+#[derive(Serialize, FromQueryResult)]
+pub struct ArticleUser {
+    pub id: i32,
+    pub username: String,
 }
 
 impl From<entity::user::Model> for UserProfile {

@@ -58,3 +58,11 @@ pub async fn get_categories(
         .collect();
     Ok(Json(resp))
 }
+
+pub async fn delete_category(
+    _claims: AuthClaims,
+    State(state): State<Arc<AppState>>,
+    Path(category_id): Path<i32>,
+) -> AppResult<Json<()>> {
+    Ok(Json(category::delete_by_id(&state.dbc, category_id).await?))
+}

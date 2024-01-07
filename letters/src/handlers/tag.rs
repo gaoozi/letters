@@ -56,3 +56,11 @@ pub async fn get_tags(State(state): State<Arc<AppState>>) -> AppResult<Json<Vec<
         .collect();
     Ok(Json(resp))
 }
+
+pub async fn delete_tag(
+    _claims: AuthClaims,
+    State(state): State<Arc<AppState>>,
+    Path(tag_id): Path<i32>,
+) -> AppResult<Json<()>> {
+    Ok(Json(tag::delete_by_id(&state.dbc, tag_id).await?))
+}

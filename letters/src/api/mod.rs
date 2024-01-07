@@ -1,3 +1,4 @@
+mod article;
 mod category;
 mod tag;
 mod user;
