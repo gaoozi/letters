@@ -1,6 +1,10 @@
+use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
-#[derive(Deserialize)]
+use super::{category::ArticleCategory, user::ArticleUser};
+
+#[derive(Deserialize, IntoParams, ToSchema)]
 pub struct ArticleRequest {
     pub title: String,
     pub slug: Option<String>,
@@ -15,7 +19,7 @@ pub struct ArticleRequest {
     pub category_id: Option<i32>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams, ToSchema)]
 pub struct UpdateArticleRequest {
     pub title: Option<String>,
     pub slug: Option<String>,
@@ -30,7 +34,7 @@ pub struct UpdateArticleRequest {
     pub category_id: Option<i32>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct PreviewArticleResponse {
     pub id: i32,
     pub title: String,
@@ -61,7 +65,7 @@ impl From<entity::article::Model> for PreviewArticleResponse {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct ArticleResponse {
     pub title: String,
     pub cover: String,
@@ -70,25 +74,49 @@ pub struct ArticleResponse {
     pub source_url: Option<String>,
     pub topping: Option<u8>,
     pub status: Option<u8>,
-    pub category_id: i32,
-    pub user_id: i32,
-    // pub category: ArticleCategory,
-    // pub author: ArticleUser,
-    // pub tags: Vec<ArticleTag>,
+    pub category: ArticleCategory,
+    pub author: ArticleUser,
+    pub tags: Vec<String>,
 }
 
-impl From<entity::article::Model> for ArticleResponse {
-    fn from(value: entity::article::Model) -> Self {
+#[derive(Serialize, FromQueryResult, ToSchema)]
+pub struct ArticleForQuery {
+    pub title: String,
+    pub cover: String,
+    pub content: String,
+    pub source: Option<u8>,
+    pub source_url: Option<String>,
+    pub topping: Option<u8>,
+    pub status: Option<u8>,
+    pub author_id: i32,
+    pub author_name: String,
+    pub category_id: i32,
+    pub category_name: String,
+    pub tag_names: Option<String>,
+}
+
+impl From<ArticleForQuery> for ArticleResponse {
+    fn from(value: ArticleForQuery) -> Self {
         Self {
             title: value.title,
             cover: value.cover,
             content: value.content,
-            source: Some(value.source),
-            source_url: Some(value.source_url),
-            topping: Some(value.topping),
-            status: Some(value.status),
-            category_id: value.category_id,
-            user_id: value.user_id,
+            source: value.source,
+            source_url: value.source_url,
+            topping: value.topping,
+            status: value.status,
+            author: ArticleUser {
+                id: value.author_id,
+                username: value.author_name,
+            },
+            category: ArticleCategory {
+                id: value.category_id,
+                name: value.category_name,
+            },
+            tags: match value.tag_names {
+                Some(names) => names.split(' ').map(|v| v.to_string()).collect(),
+                None => Vec::new(),
+            },
         }
     }
 }

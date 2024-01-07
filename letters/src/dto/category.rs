@@ -1,7 +1,8 @@
 use sea_orm::{prelude::DateTimeUtc, FromQueryResult};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CategoryRequest {
     pub name: String,
     pub description: Option<String>,

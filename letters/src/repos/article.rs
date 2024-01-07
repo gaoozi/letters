@@ -1,13 +1,16 @@
 use crate::{
     dto::{
-        article::{ArticleRequest, UpdateArticleRequest},
+        article::{ArticleForQuery, ArticleRequest, UpdateArticleRequest},
         Direction, PageQueryParam,
     },
     error::{AppError, AppResult, Resource, ResourceType},
 };
 use entity::article as ArticleEntity;
 use entity::article_tag as ArticleTagEntity;
+use entity::category as CategoryEntity;
 use entity::tag as TagEntity;
+use entity::user as UserEntity;
+use sea_orm::sea_query::Expr;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, JoinType::LeftJoin,
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set, TransactionTrait,
@@ -51,7 +54,9 @@ pub async fn update(
     article_id: i32,
     update_data: &UpdateArticleRequest,
 ) -> AppResult<()> {
-    let model = read_by_id(dbc, article_id).await?;
+    let model = ArticleEntity::Entity::find_by_id(article_id)
+        .one(dbc)
+        .await?;
     if model.is_none() {
         return Err(AppError::NotFound(Resource {
             r#type: ResourceType::Article,
@@ -115,8 +120,22 @@ pub async fn update(
 pub async fn read_by_id(
     dbc: &DatabaseConnection,
     article_id: i32,
-) -> AppResult<Option<ArticleEntity::Model>> {
-    let model = ArticleEntity::Entity::find_by_id(article_id)
+) -> AppResult<Option<ArticleForQuery>> {
+    let model = ArticleEntity::Entity::find()
+        .column_as(UserEntity::Column::Id, "author_id")
+        .column_as(UserEntity::Column::Username, "author_name")
+        .column_as(CategoryEntity::Column::Id, "category_id")
+        .column_as(CategoryEntity::Column::Name, "category_name")
+        .exprs([Expr::cust(
+            r#"GROUP_CONCAT(DISTINCT tag.name SEPARATOR " ") AS tag_names"#,
+        )])
+        .join(LeftJoin, UserEntity::Relation::Article.def().rev())
+        .join(LeftJoin, CategoryEntity::Relation::Article.def().rev())
+        .join(LeftJoin, ArticleTagEntity::Relation::Article.def().rev())
+        .join(LeftJoin, TagEntity::Relation::ArticleTag.def().rev())
+        .group_by(ArticleEntity::Column::Id)
+        .having(ArticleEntity::Column::Id.eq(article_id))
+        .into_model::<ArticleForQuery>()
         .one(dbc)
         .await?;
 

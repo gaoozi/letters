@@ -15,6 +15,19 @@ use axum::{
 };
 use std::sync::Arc;
 
+/// Create category.
+#[utoipa::path(
+    post,
+    path = "/api/v1/categories",
+    request_body = CategoryRequest,
+    responses(
+        (status = 200, description = "Success update profile information", body = [()]),
+        (status = 400, description = "Invalid data input", body = [AppError]),
+        (status = 401, description = "Unauthorized user", body = [AppError]),
+        (status = 500, description = "Internal server error", body = [AppError])
+    ),
+    security(("jwt" = []))
+)]
 pub async fn create_category(
     _claims: AuthClaims,
     State(state): State<Arc<AppState>>,

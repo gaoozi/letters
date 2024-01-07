@@ -1,4 +1,8 @@
+use crate::dto::article::*;
 use crate::dto::auth::*;
+use crate::dto::category::*;
+use crate::dto::tag::*;
+use crate::dto::PageQueryParam;
 use crate::error::{AppError, ErrorResponse};
 use crate::handlers;
 use crate::utils::jwt::AuthClaims;
@@ -13,6 +17,11 @@ use utoipa::{Modify, OpenApi};
     ),
     paths(
         handlers::auth::authorize,
+        handlers::article::create_article,
+        handlers::article::get_articles,
+        handlers::article::get_article_by_id,
+        handlers::category::create_category,
+        handlers::tag::create_tag,
     ),
     components(
         schemas(
@@ -21,6 +30,13 @@ use utoipa::{Modify, OpenApi};
             AuthResponse,
             AppError,
             ErrorResponse,
+            ArticleRequest,
+            ArticleResponse,
+            PreviewArticleResponse,
+            UpdateArticleRequest,
+            PageQueryParam,
+            CategoryRequest,
+            TagRequest,
         )
     ),
     modifiers(&SecurityAddon),
