@@ -2,7 +2,7 @@ use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
-use super::{category::ArticleCategory, user::ArticleUser};
+use super::{category::ArticleCategory, user::UserInfo};
 
 #[derive(Deserialize, IntoParams, ToSchema)]
 pub struct ArticleRequest {
@@ -75,7 +75,7 @@ pub struct ArticleResponse {
     pub topping: Option<u8>,
     pub status: Option<u8>,
     pub category: ArticleCategory,
-    pub author: ArticleUser,
+    pub author: UserInfo,
     pub tags: Vec<String>,
 }
 
@@ -105,7 +105,7 @@ impl From<ArticleForQuery> for ArticleResponse {
             source_url: value.source_url,
             topping: value.topping,
             status: value.status,
-            author: ArticleUser {
+            author: UserInfo {
                 id: value.author_id,
                 username: value.author_name,
             },
@@ -119,4 +119,10 @@ impl From<ArticleForQuery> for ArticleResponse {
             },
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ArticleInfo {
+    pub id: i32,
+    pub title: String,
 }

@@ -1,5 +1,6 @@
 mod article;
 mod category;
+mod series;
 mod tag;
 mod user;
 mod v1;
