@@ -22,7 +22,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = "0.2"
 
 # database
-sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql", "chrono" ] }
+#sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql", "chrono" ] }
 sea-orm = { version = "0.12", features = [ "sqlx-mysql", "runtime-tokio-rustls", "macros" ] }
 
 # serialize/deserialize

@@ -1,12 +1,16 @@
 use crate::{
     app::AppState,
-    dto::category::{CategoryRequest, CategoryResponse, UpdateCategoryRequest},
+    dto::{
+        article::PreviewArticleResponse,
+        category::{CategoryRequest, CategoryResponse, UpdateCategoryRequest},
+        PageQueryParam,
+    },
     error::{AppError, AppResult, Resource, ResourceType},
-    repos::category,
+    repos::{article, category},
     utils::jwt::AuthClaims,
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     Json,
 };
 use std::sync::Arc;
@@ -57,6 +61,19 @@ pub async fn get_categories(
         .map(CategoryResponse::from)
         .collect();
     Ok(Json(resp))
+}
+
+pub async fn get_category_articles(
+    State(state): State<Arc<AppState>>,
+    Path(category_id): Path<i32>,
+    Query(param): Query<PageQueryParam>,
+) -> AppResult<Json<Vec<PreviewArticleResponse>>> {
+    let models = article::read_all_by_category(&state.dbc, category_id, &param)
+        .await?
+        .into_iter()
+        .map(PreviewArticleResponse::from)
+        .collect();
+    Ok(Json(models))
 }
 
 pub async fn delete_category(

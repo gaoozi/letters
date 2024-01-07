@@ -6,9 +6,11 @@ use crate::{
     error::{AppError, AppResult, Resource, ResourceType},
 };
 use entity::article as ArticleEntity;
+use entity::article_tag as ArticleTagEntity;
+use entity::tag as TagEntity;
 use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder, Set,
-    TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, JoinType::LeftJoin,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set, TransactionTrait,
 };
 use std::cmp;
 
@@ -121,11 +123,75 @@ pub async fn read_by_id(
     Ok(model)
 }
 
+pub async fn _read_by_slug(
+    dbc: &DatabaseConnection,
+    slug: &str,
+) -> AppResult<Option<ArticleEntity::Model>> {
+    let model = ArticleEntity::Entity::find()
+        .filter(ArticleEntity::Column::Slug.eq(slug))
+        .one(dbc)
+        .await?;
+
+    Ok(model)
+}
+
 pub async fn read_all(
     dbc: &DatabaseConnection,
     param: &PageQueryParam,
 ) -> AppResult<Vec<ArticleEntity::Model>> {
     let mut select = ArticleEntity::Entity::find();
+
+    match param.order_direction {
+        Some(Direction::Desc) => {
+            select = select.order_by_desc(ArticleEntity::Column::CreatedAt);
+        }
+        _ => {
+            select = select.order_by_asc(ArticleEntity::Column::CreatedAt);
+        }
+    }
+
+    let models = select
+        .paginate(dbc, cmp::max(param.per_page, 1))
+        .fetch_page(cmp::max(param.page - 1, 0))
+        .await?;
+
+    Ok(models)
+}
+
+pub async fn read_all_by_category(
+    dbc: &DatabaseConnection,
+    category_id: i32,
+    param: &PageQueryParam,
+) -> AppResult<Vec<ArticleEntity::Model>> {
+    let mut select =
+        ArticleEntity::Entity::find().filter(ArticleEntity::Column::CategoryId.eq(category_id));
+
+    match param.order_direction {
+        Some(Direction::Desc) => {
+            select = select.order_by_desc(ArticleEntity::Column::CreatedAt);
+        }
+        _ => {
+            select = select.order_by_asc(ArticleEntity::Column::CreatedAt);
+        }
+    }
+
+    let models = select
+        .paginate(dbc, cmp::max(param.per_page, 1))
+        .fetch_page(cmp::max(param.page - 1, 0))
+        .await?;
+
+    Ok(models)
+}
+
+pub async fn read_all_by_tag(
+    dbc: &DatabaseConnection,
+    tag_id: i32,
+    param: &PageQueryParam,
+) -> AppResult<Vec<ArticleEntity::Model>> {
+    let mut select = ArticleEntity::Entity::find()
+        .join(LeftJoin, ArticleTagEntity::Relation::Article.def())
+        .join(LeftJoin, TagEntity::Relation::ArticleTag.def().rev())
+        .having(TagEntity::Column::Id.eq(tag_id));
 
     match param.order_direction {
         Some(Direction::Desc) => {

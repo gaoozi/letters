@@ -61,6 +61,22 @@ pub async fn get_article_by_id(
     Ok(Json(ArticleResponse::from(model)))
 }
 
+pub async fn _get_article_by_slug(
+    State(state): State<Arc<AppState>>,
+    Path(slug): Path<String>,
+) -> AppResult<Json<ArticleResponse>> {
+    let model = article::_read_by_slug(&state.dbc, &slug)
+        .await?
+        .ok_or_else(|| {
+            AppError::NotFound(Resource {
+                r#type: ResourceType::Article,
+                detail: "Article found this user.".to_string(),
+            })
+        })?;
+
+    Ok(Json(ArticleResponse::from(model)))
+}
+
 pub async fn delete_article(
     _claims: AuthClaims,
     State(state): State<Arc<AppState>>,

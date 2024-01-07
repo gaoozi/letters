@@ -12,6 +12,7 @@ pub fn router() -> Router<Arc<AppState>> {
             "/",
             get(handlers::tag::get_tags).post(handlers::tag::create_tag),
         )
+        .route("/:tag_id/articles", get(handlers::tag::get_tag_articles))
         .route(
             "/:tag_id",
             put(handlers::tag::update_tag).delete(handlers::tag::delete_tag),

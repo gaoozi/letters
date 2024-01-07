@@ -1,12 +1,16 @@
 use crate::{
     app::AppState,
-    dto::tag::{TagRequest, TagResponse, UpdateTagRequest},
+    dto::{
+        article::PreviewArticleResponse,
+        tag::{TagRequest, TagResponse, UpdateTagRequest},
+        PageQueryParam,
+    },
     error::{AppError, AppResult, Resource, ResourceType},
-    repos::tag,
+    repos::{article, tag},
     utils::jwt::AuthClaims,
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     Json,
 };
 use std::sync::Arc;
@@ -55,6 +59,19 @@ pub async fn get_tags(State(state): State<Arc<AppState>>) -> AppResult<Json<Vec<
         .map(TagResponse::from)
         .collect();
     Ok(Json(resp))
+}
+
+pub async fn get_tag_articles(
+    State(state): State<Arc<AppState>>,
+    Path(tag_id): Path<i32>,
+    Query(param): Query<PageQueryParam>,
+) -> AppResult<Json<Vec<PreviewArticleResponse>>> {
+    let models = article::read_all_by_tag(&state.dbc, tag_id, &param)
+        .await?
+        .into_iter()
+        .map(PreviewArticleResponse::from)
+        .collect();
+    Ok(Json(models))
 }
 
 pub async fn delete_tag(
