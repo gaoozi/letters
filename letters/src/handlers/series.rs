@@ -1,11 +1,12 @@
 use crate::{
     app::AppState,
     dto::{
+        article::PreviewArticleResponse,
         series::{SeriesRequest, SeriesResponse, UpdateSeriesRequest},
         PageQueryParam,
     },
     error::{AppError, AppResult, Resource, ResourceType},
-    repos::series,
+    repos::{article, series},
     utils::jwt::AuthClaims,
 };
 use axum::{
@@ -45,7 +46,7 @@ pub async fn update_series(
     Ok(Json(()))
 }
 
-pub async fn get_series(
+pub async fn get_all_series(
     State(state): State<Arc<AppState>>,
     Query(param): Query<PageQueryParam>,
 ) -> AppResult<Json<Vec<SeriesResponse>>> {
@@ -53,6 +54,19 @@ pub async fn get_series(
         .await?
         .into_iter()
         .map(SeriesResponse::from)
+        .collect();
+    Ok(Json(resp))
+}
+
+pub async fn get_series_articles(
+    State(state): State<Arc<AppState>>,
+    Path(series_id): Path<i32>,
+    Query(param): Query<PageQueryParam>,
+) -> AppResult<Json<Vec<PreviewArticleResponse>>> {
+    let resp = article::read_all_by_series(&state.dbc, series_id, &param)
+        .await?
+        .into_iter()
+        .map(PreviewArticleResponse::from)
         .collect();
     Ok(Json(resp))
 }

@@ -8,6 +8,8 @@ use crate::{
 use entity::article as ArticleEntity;
 use entity::article_tag as ArticleTagEntity;
 use entity::category as CategoryEntity;
+use entity::series as SeriesEntity;
+use entity::series_article as SeriesArticleEntity;
 use entity::tag as TagEntity;
 use entity::user as UserEntity;
 use sea_orm::sea_query::Expr;
@@ -211,6 +213,33 @@ pub async fn read_all_by_tag(
         .join(LeftJoin, ArticleTagEntity::Relation::Article.def())
         .join(LeftJoin, TagEntity::Relation::ArticleTag.def().rev())
         .having(TagEntity::Column::Id.eq(tag_id));
+
+    match param.order_direction {
+        Some(Direction::Desc) => {
+            select = select.order_by_desc(ArticleEntity::Column::CreatedAt);
+        }
+        _ => {
+            select = select.order_by_asc(ArticleEntity::Column::CreatedAt);
+        }
+    }
+
+    let models = select
+        .paginate(dbc, cmp::max(param.per_page, 1))
+        .fetch_page(cmp::max(param.page - 1, 0))
+        .await?;
+
+    Ok(models)
+}
+
+pub async fn read_all_by_series(
+    dbc: &DatabaseConnection,
+    series_id: i32,
+    param: &PageQueryParam,
+) -> AppResult<Vec<ArticleEntity::Model>> {
+    let mut select = ArticleEntity::Entity::find()
+        .join(LeftJoin, SeriesArticleEntity::Relation::Article.def())
+        .join(LeftJoin, SeriesEntity::Relation::SeriesArticle.def().rev())
+        .having(SeriesEntity::Column::Id.eq(series_id));
 
     match param.order_direction {
         Some(Direction::Desc) => {
