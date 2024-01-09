@@ -1,10 +1,15 @@
+use fake::faker::lorem::en::Word;
+use fake::faker::lorem::zh_cn::Sentence;
+use fake::Dummy;
 use sea_orm::{prelude::DateTimeUtc, FromQueryResult};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, ToSchema, Dummy)]
 pub struct CategoryRequest {
+    #[dummy(faker = "Word()")]
     pub name: String,
+    #[dummy(faker = "Sentence(10..32)")]
     pub description: Option<String>,
     pub status: u8,
 }

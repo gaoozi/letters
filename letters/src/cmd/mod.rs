@@ -1,4 +1,5 @@
 mod create_admin;
+mod fake;
 mod hello;
 mod migrate;
 mod serve;
@@ -33,6 +34,8 @@ pub enum SubCmd {
     Migrate(migrate::Cmd),
     // Create the default admin user
     CreateAdmin(create_admin::Cmd),
+    // Fake some database for test
+    Fake(fake::Cmd),
 }
 
 pub fn setup() -> anyhow::Result<Cmd> {
@@ -53,6 +56,9 @@ pub fn handle(cmd: &Cmd, conf: &Conf) -> anyhow::Result<()> {
         }
         Some(SubCmd::CreateAdmin(subcmd)) => {
             create_admin::handle(subcmd, conf)?;
+        }
+        Some(SubCmd::Fake(subcmd)) => {
+            fake::handle(subcmd, conf)?;
         }
         None => todo!(),
     }

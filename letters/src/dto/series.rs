@@ -1,9 +1,13 @@
+use fake::faker::lorem::zh_cn::{Paragraph, Sentence};
+use fake::Dummy;
 use sea_orm::prelude::DateTimeUtc;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Dummy)]
 pub struct SeriesRequest {
+    #[dummy(faker = "Sentence(8..32)")]
     pub name: String,
+    #[dummy(faker = "Paragraph(5..255)")]
     pub description: Option<String>,
     pub cover: Option<String>,
     pub status: u8,

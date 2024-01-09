@@ -1,11 +1,16 @@
+use fake::faker::internet::en::{FreeEmail, Password, Username};
+use fake::Dummy;
 use sea_orm::prelude::DateTimeUtc;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Dummy)]
 pub struct NewUser {
+    #[dummy(faker = "Username()")]
     pub username: String,
+    #[dummy(faker = "FreeEmail()")]
     pub email: String,
+    #[dummy(faker = "Password(6..100)")]
     pub password: String,
 }
 

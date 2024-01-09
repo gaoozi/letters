@@ -1,15 +1,22 @@
+use fake::faker::lorem::en::Word;
+use fake::faker::lorem::zh_cn::{Paragraph, Sentence};
+use fake::Dummy;
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
 use super::{category::ArticleCategory, user::UserInfo};
 
-#[derive(Deserialize, IntoParams, ToSchema)]
+#[derive(Deserialize, IntoParams, ToSchema, Dummy)]
 pub struct ArticleRequest {
+    #[dummy(faker = "Sentence(8..32)")]
     pub title: String,
+    #[dummy(faker = "Word()")]
     pub slug: Option<String>,
     pub cover: Option<String>,
+    #[dummy(faker = "Paragraph(5..20)")]
     pub content: String,
+    #[dummy(faker = "Sentence(0..1)")]
     pub summary: Option<String>,
     pub password_hash: Option<String>,
     pub source: Option<u8>,
