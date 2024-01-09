@@ -172,8 +172,8 @@ pub async fn read_all(
     }
 
     let models = select
-        .paginate(dbc, cmp::max(param.per_page, 1))
-        .fetch_page(cmp::max(param.page - 1, 0))
+        .paginate(dbc, cmp::max(param.per_page.unwrap_or(10), 1))
+        .fetch_page(cmp::max(param.page.unwrap_or(1) - 1, 0))
         .await?;
 
     Ok(models)
@@ -197,8 +197,8 @@ pub async fn read_all_by_category(
     }
 
     let models = select
-        .paginate(dbc, cmp::max(param.per_page, 1))
-        .fetch_page(cmp::max(param.page - 1, 0))
+        .paginate(dbc, cmp::max(param.per_page.unwrap_or(10), 1))
+        .fetch_page(cmp::max(param.page.unwrap_or(1) - 1, 0))
         .await?;
 
     Ok(models)
@@ -224,8 +224,8 @@ pub async fn read_all_by_tag(
     }
 
     let models = select
-        .paginate(dbc, cmp::max(param.per_page, 1))
-        .fetch_page(cmp::max(param.page - 1, 0))
+        .paginate(dbc, cmp::max(param.per_page.unwrap_or(10), 1))
+        .fetch_page(cmp::max(param.page.unwrap_or(1) - 1, 0))
         .await?;
 
     Ok(models)
@@ -251,8 +251,8 @@ pub async fn read_all_by_series(
     }
 
     let models = select
-        .paginate(dbc, cmp::max(param.per_page, 1))
-        .fetch_page(cmp::max(param.page - 1, 0))
+        .paginate(dbc, cmp::max(param.per_page.unwrap_or(10), 1))
+        .fetch_page(cmp::max(param.page.unwrap_or(1) - 1, 0))
         .await?;
 
     Ok(models)

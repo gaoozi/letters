@@ -10,8 +10,8 @@ pub mod user;
 
 #[derive(Debug, Deserialize, ToSchema, IntoParams)]
 pub struct PageQueryParam {
-    pub page: u64,
-    pub per_page: u64,
+    pub page: Option<u64>,
+    pub per_page: Option<u64>,
     pub order_by: Option<String>,
     pub order_direction: Option<Direction>,
 }
