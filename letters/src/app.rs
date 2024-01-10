@@ -1,8 +1,12 @@
-use std::sync::Arc;
-
 use axum::Router;
 use sea_orm::{Database, DatabaseConnection};
-use tower_http::trace::{self, TraceLayer};
+use std::sync::Arc;
+use tower::ServiceBuilder;
+use tower_http::cors::Any;
+use tower_http::{
+    cors::CorsLayer,
+    trace::{self, TraceLayer},
+};
 use tracing::Level;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
@@ -26,14 +30,20 @@ pub async fn serve(port: u16, conf: &Conf) {
         conf: Arc::new(conf.clone()),
     });
 
+    let cors_layer = CorsLayer::new().allow_origin(Any).allow_methods(Any);
+
     let app = Router::new()
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .merge(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
         .nest("/api", api::router())
         .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
-                .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+            ServiceBuilder::new()
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+                        .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+                )
+                .layer(cors_layer),
         )
         .with_state(Arc::clone(&state));
 

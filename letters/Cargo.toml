@@ -13,7 +13,8 @@ sea-orm-migration = "^0.12.0"
 axum = "0.7"
 axum-extra = { version = "0.9", features = ["typed-header"] }
 tokio = { version = "1.0", features = ["full"] }
-tower-http = { version = "0.5", features = ["trace"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors"] }
 futures = "0.3"
 
 # log, tracing
